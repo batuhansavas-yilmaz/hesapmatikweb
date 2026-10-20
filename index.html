@@ -20,7 +20,6 @@
     color-scheme: light;
     --sat: env(safe-area-inset-top, 0px);
     --sar: env(safe-area-inset-right, 0px);
-    --sab: env(safe-area-inset-bottom, 0px);
     --sal: env(safe-area-inset-left, 0px);
     --primary: #0087f5;
     --scaffold: #fafafa;
@@ -235,7 +234,7 @@
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-y: contain;
-    padding-bottom: calc(24px + var(--sab));
+    padding-bottom: 24px;
     padding-left: var(--sal);
     padding-right: var(--sar);
     scrollbar-width: thin;
@@ -803,7 +802,7 @@
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-y: contain;
-    padding-bottom: calc(24px + var(--sab));
+    padding-bottom: 24px;
     padding-left: var(--sal);
     padding-right: var(--sar);
     visibility: hidden;
@@ -887,7 +886,7 @@
     z-index: 100;
     display: grid;
     place-items: center;
-    padding: calc(24px + var(--sat)) calc(24px + var(--sar)) calc(24px + var(--sab)) calc(24px + var(--sal));
+    padding: calc(24px + var(--sat)) calc(24px + var(--sar)) 24px calc(24px + var(--sal));
     background: rgba(0, 0, 0, .38);
     opacity: 0;
     transition: opacity .16s ease;
@@ -903,7 +902,7 @@
 
   .dialog {
     width: min(100%, 380px);
-    max-height: calc(100dvh - var(--sat) - var(--sab) - 48px);
+    max-height: calc(100dvh - var(--sat) - 48px);
     overflow-y: auto;
     padding: 22px 20px 8px;
     border-radius: 4px;
@@ -969,7 +968,7 @@
   .toast {
     position: fixed;
     left: 50%;
-    bottom: calc(26px + var(--sab));
+    bottom: 26px;
     z-index: 200;
     max-width: calc(100vw - 48px);
     padding: 12px 20px;
