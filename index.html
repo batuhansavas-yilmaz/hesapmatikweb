@@ -1238,7 +1238,7 @@
               <hr class="row-divider">
               <div class="kdv-row"><span>Tevkifat Sonrası KDV Tutarı</span><span class="kdv-value" id="tvExclVatAfter">0.00</span></div>
               <hr class="row-divider">
-              <div class="kdv-row"><span>Toplam Tutar</span><span class="kdv-value" id="tvExclTotal">0.00</span></div>
+              <div class="kdv-row"><span>Tevkifat Sonrası Ödenecek Tutar</span><span class="kdv-value" id="tvExclTotal">0.00</span></div>
             </div>
             <div class="kdv-section">
               <div class="result-title compact">KDV Dahil Tutardan Tevkifat Hesaplama</div>
@@ -1252,7 +1252,7 @@
               <hr class="row-divider">
               <div class="kdv-row"><span>Tevkifat Sonrası KDV Tutarı</span><span class="kdv-value" id="tvInclVatAfter">0.00</span></div>
               <hr class="row-divider">
-              <div class="kdv-row"><span>Toplam Tutar</span><span class="kdv-value" id="tvInclTotal">0.00</span></div>
+              <div class="kdv-row"><span>Tevkifat Sonrası Ödenecek Tutar</span><span class="kdv-value" id="tvInclTotal">0.00</span></div>
             </div>
             <div class="reset-wrap">
               <button type="button" class="btn reset-button" id="tvReset" data-ripple aria-label="Sıfırla">
@@ -1581,11 +1581,11 @@
         <div class="unit-panel" id="bgHpResults" hidden>
           <div class="unit-line"><span class="unit-source" data-hp-source></span><span class="unit-colon">:</span><span class="unit-value" id="bgHpKw"></span></div>
           <hr class="unit-divider">
-          <div class="unit-line"><span class="unit-source" data-hp-source data-hp-kind="bhp"></span><span class="unit-colon">:</span><span class="unit-value" id="bgHpBhpKw"></span></div>
+          <div class="unit-line"><span class="unit-source" data-hp-source data-hp-kind="buhar hp"></span><span class="unit-colon">:</span><span class="unit-value" id="bgHpBhpKw"></span></div>
           <hr class="unit-divider">
-          <div class="unit-line"><span class="unit-source" data-hp-source data-hp-kind="ehp"></span><span class="unit-colon">:</span><span class="unit-value" id="bgHpEhpKw"></span></div>
+          <div class="unit-line"><span class="unit-source" data-hp-source data-hp-kind="elektrik hp"></span><span class="unit-colon">:</span><span class="unit-value" id="bgHpEhpKw"></span></div>
           <hr class="unit-divider">
-          <div class="unit-line"><span class="unit-source" data-hp-source data-hp-kind="mhp"></span><span class="unit-colon">:</span><span class="unit-value" id="bgHpMhpKw"></span></div>
+          <div class="unit-line"><span class="unit-source" data-hp-source data-hp-kind="metrik hp"></span><span class="unit-colon">:</span><span class="unit-value" id="bgHpMhpKw"></span></div>
         </div>
         <div class="reset-wrap">
           <button type="button" class="btn reset-button" id="bgHpReset" data-ripple aria-label="Sıfırla" hidden>
@@ -1796,8 +1796,12 @@
     }
     const amount = numericValue(amountInput);
     const rate = numericValue(rateInput);
-    if (Number.isNaN(amount) || Number.isNaN(rate)) {
+    if (!Number.isFinite(amount) || !Number.isFinite(rate)) {
       showToast("Lütfen bir değer girin");
+      return;
+    }
+    if (amount < 0 || rate < 0) {
+      showToast("Negatif değer giremezsiniz");
       return;
     }
 
@@ -1849,8 +1853,12 @@
       }
       const amount = numericValue(amountInput);
       const rate = numericValue(rateInput);
-      if (Number.isNaN(amount) || Number.isNaN(rate)) {
+      if (!Number.isFinite(amount) || !Number.isFinite(rate)) {
         showToast("Lütfen bir değer girin");
+        return;
+      }
+      if (amount < 0 || rate < 0) {
+        showToast("Negatif değer giremezsiniz");
         return;
       }
 
@@ -1914,15 +1922,19 @@
     }
     const x = numericValue(firstInput);
     const y = numericValue(secondInput);
-    if (Number.isNaN(x) || Number.isNaN(y)) {
+    if (!Number.isFinite(x) || !Number.isFinite(y)) {
       showToast("Lütfen bir değer girin");
       return;
     }
+    if (x === 0) {
+      showToast("1. sayı 0 olamaz");
+      return;
+    }
 
-    const percent = dartRound((y / x) * 100);
-    const valueOf = dartRound(x * (y / 100));
-    const increase = dartRound(x + valueOf);
-    const decrease = dartRound(x - valueOf);
+    const percent = (y / x) * 100;
+    const valueOf = x * (y / 100);
+    const increase = x + valueOf;
+    const decrease = x - valueOf;
 
     $("#yzLabel1").textContent = secondInput.value + " sayısı " + firstInput.value + " sayısının % kaçıdır";
     $("#yzValue1").textContent = "% " + fixed(percent);
@@ -1992,25 +2004,38 @@
     const width = numericValue(widthInput);
     const length = numericValue(lengthInput);
     const sandCm = numericValue(sandInput);
-    if (Number.isNaN(depth) || Number.isNaN(width) || Number.isNaN(length) || Number.isNaN(sandCm)) {
+    if (!Number.isFinite(depth) || !Number.isFinite(width) || !Number.isFinite(length) || !Number.isFinite(sandCm)) {
       showToast("Lütfen bir değer girin");
       return;
     }
+    if (depth <= 0 || width <= 0 || length <= 0) {
+      showToast("Derinlik, en ve uzunluk 0'dan büyük olmalı");
+      return;
+    }
+    if (sandCm < 0) {
+      showToast("Kum kalınlığı negatif olamaz");
+      return;
+    }
+    if (sandCm > depth) {
+      showToast("Kum kalınlığı derinlikten fazla olamaz");
+      return;
+    }
 
-    const volume = dartRound((length * width * depth) / 1000);
-    const planted = dartRound(volume * 0.50);
-    const unplanted = dartRound(volume * 0.25);
-    const filterMin = dartRound(volume * 2.50);
-    const filterMax = dartRound(volume * 4.75);
-    const heater = dartRound(volume * 0.6667);
-    const sandBase = dartRound(volume * 0.025);
-    const sandKg = dartRound(sandBase * sandCm);
+    const volumeRaw = (length * width * depth) / 1000;
+    const volume = dartRound(volumeRaw);
+    const planted = dartRound(volumeRaw * 0.50);
+    const unplanted = dartRound(volumeRaw * 0.25);
+    const filterMin = dartRound(volumeRaw * 2.50);
+    const filterMax = dartRound(volumeRaw * 4.75);
+    const heater = dartRound(volumeRaw * 0.6667);
+    const sandVolume = (length * width * sandCm) / 1000;
+    const sandKg = dartRound(sandVolume * 1.6);
 
     $("#aqVolume").textContent = fixed(volume) + " Litre";
     $("#aqLight").innerHTML = "<span class='sub-line'>Bitkili Akvaryum : " + fixed(planted) + " Watt</span><span class='sub-line'>Bitkisiz Akvaryum : " + fixed(unplanted) + " Watt</span>";
     $("#aqFilter").innerHTML = "<span class='sub-line'>Minimum : " + fixed(filterMin) + "<span class='sub-small'> litre/saat</span></span><span class='sub-line'>Maximum : " + fixed(filterMax) + "<span class='sub-small'> litre/saat</span></span>";
     $("#aqHeater").textContent = fixed(heater) + " Watt";
-    $("#aqSandResult").textContent = "İstediğiniz Kalınlık İçin Gerekli Kum : " + fixed(sandKg) + " Kg";
+    $("#aqSandResult").textContent = "İstediğiniz Kalınlık İçin Gerekli Kum (yaklaşık) : " + fixed(sandKg) + " Kg";
     $("#aqReset").hidden = false;
     $("#aqSpacer").hidden = true;
   }
@@ -2043,12 +2068,20 @@
     }
     const principal = numericValue(principalInput);
     const discount = numericValue(discountInput);
-    if (Number.isNaN(principal) || Number.isNaN(discount)) {
+    if (!Number.isFinite(principal) || !Number.isFinite(discount)) {
       showToast("Lütfen bir değer girin");
       return;
     }
-    const rate = dartRound((discount / principal) * 100);
-    const net = dartRound(principal * ((100 - rate) / 100));
+    if (principal <= 0) {
+      showToast("Ana para 0'dan büyük olmalı");
+      return;
+    }
+    if (discount < 0 || discount > principal) {
+      showToast("İndirim tutarı 0 ile ana para arasında olmalı");
+      return;
+    }
+    const rate = (discount / principal) * 100;
+    const net = principal - discount;
     $("#kmRate").textContent = "% " + fixed(rate);
     $("#kmNet1").textContent = fixed(net) + " ₺";
     $("#kmPanel1").hidden = false;
@@ -2064,8 +2097,16 @@
     }
     const principal = numericValue(principalInput);
     const percent = numericValue(percentInput);
-    if (Number.isNaN(principal) || Number.isNaN(percent)) {
+    if (!Number.isFinite(principal) || !Number.isFinite(percent)) {
       showToast("Lütfen bir değer girin");
+      return;
+    }
+    if (principal <= 0) {
+      showToast("Ana para 0'dan büyük olmalı");
+      return;
+    }
+    if (percent < 0 || percent > 100) {
+      showToast("İndirim oranı 0 ile 100 arasında olmalı");
       return;
     }
     const amount = dartRound(principal * (percent / 100));
@@ -2100,10 +2141,10 @@
   function bmiComment(bmi) {
     if (bmi === 0) return "";
     if (bmi < 18.5) return "Zayıfsınız. Biraz kilo almanızda fayda var, ama tabii ki de sağlıklı bir şekilde.";
-    if (bmi < 24.99) return "Kilonuz normal. Fakat yine de yediklerinize dikkat etmeyi ihmal etmeyin lütfen.";
-    if (bmi < 29.99) return "Fazla kilolarınızdan kurtulmanız gerekli. Aksi halde kilolarınız başınıza dert açabilir.";
-    if (bmi < 34.99) return "Birinci derecede obezsiniz. Yediğinize dikkat edip bir diyetisyene başvurmanız gerekli.";
-    if (bmi < 44.99) return "İkinci derecede obezsiniz. Kalp ve damar hastalıkları riskiniz var. Bir diyetisyene başvurmanız gerekli.";
+    if (bmi < 25) return "Kilonuz normal. Fakat yine de yediklerinize dikkat etmeyi ihmal etmeyin lütfen.";
+    if (bmi < 30) return "Fazla kilolarınızdan kurtulmanız gerekli. Aksi halde kilolarınız başınıza dert açabilir.";
+    if (bmi < 35) return "Birinci derecede obezsiniz. Yediğinize dikkat edip bir diyetisyene başvurmanız gerekli.";
+    if (bmi < 40) return "İkinci derecede obezsiniz. Kalp ve damar hastalıkları riskiniz var. Bir diyetisyene başvurmanız gerekli.";
     return "Üçüncü derecede obezsiniz. Bu da morbid obezite demek. Acil olarak bir diyetisyene başvurmanız gerekli.";
   }
 
@@ -2116,11 +2157,15 @@
     }
     const weight = numericValue(weightInput);
     const height = numericValue(heightInput);
-    if (Number.isNaN(weight) || Number.isNaN(height)) {
+    if (!Number.isFinite(weight) || !Number.isFinite(height)) {
       showToast("Lütfen bir değer girin");
       return;
     }
-    const bmi = dartRound(weight / ((height / 100) * (height / 100)));
+    if (weight <= 0 || height <= 0) {
+      showToast("Kilo ve boy 0'dan büyük olmalı");
+      return;
+    }
+    const bmi = weight / ((height / 100) * (height / 100));
     $("#vkTitle").textContent = "VÜCUT KİTLE ENDEKSİNİZ : " + fixed(bmi);
     $("#vkComment").textContent = bmiComment(bmi);
     $("#vkResults").hidden = false;
@@ -2148,7 +2193,7 @@
       return;
     }
     const kw = numericValue(input);
-    if (Number.isNaN(kw)) {
+    if (!Number.isFinite(kw)) {
       showToast("Lütfen bir değer girin");
       return;
     }
@@ -2158,9 +2203,9 @@
     const bhp = kw * 0.101941995;
     $$("[data-kw-source]").forEach((span) => { span.textContent = kw + " kW"; });
     $("#bgHp").textContent = fixed(hp, 10) + " hp";
-    $("#bgBhp").textContent = fixed(bhp, 10) + " bhp";
-    $("#bgEhp").textContent = fixed(ehp, 10) + " ehp";
-    $("#bgMhp").textContent = fixed(mhp, 10) + " mhp";
+    $("#bgBhp").textContent = fixed(bhp, 10) + " buhar hp";
+    $("#bgEhp").textContent = fixed(ehp, 10) + " elektrik hp";
+    $("#bgMhp").textContent = fixed(mhp, 10) + " metrik hp";
     $("#bgKwResults").hidden = false;
     $("#bgKwReset").hidden = false;
     input.value = "";
@@ -2174,7 +2219,7 @@
       return;
     }
     const hp = numericValue(input);
-    if (Number.isNaN(hp)) {
+    if (!Number.isFinite(hp)) {
       showToast("Lütfen bir değer girin");
       return;
     }
