@@ -1,0 +1,14 @@
+{
+  "name": "HesapMatik",
+  "short_name": "HesapMatik",
+  "description": "KDV, yüzde, yakıt, akvaryum, indirim-komisyon, vücut kitle endeksi ve kW-hp hesaplayıcıları.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#FAFAFA",
+  "theme_color": "#0087F5",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "favicon.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}
