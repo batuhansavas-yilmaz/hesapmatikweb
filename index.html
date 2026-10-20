@@ -1,0 +1,2387 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>HesapMatik</title>
+<meta name="description" content="KDV, yüzde, yakıt, akvaryum, indirim-komisyon, vücut kitle endeksi ve kW-hp hesaplayıcıları.">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#0087f5">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#383e42">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="HesapMatik">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="favicon.png">
+<link rel="apple-touch-icon" sizes="512x512" href="favicon.png">
+<style>
+  :root {
+    color-scheme: light;
+    --sat: env(safe-area-inset-top, 0px);
+    --sar: env(safe-area-inset-right, 0px);
+    --sab: env(safe-area-inset-bottom, 0px);
+    --sal: env(safe-area-inset-left, 0px);
+    --primary: #0087f5;
+    --scaffold: #fafafa;
+    --appbar: #0087f5;
+    --text: rgba(0, 0, 0, .87);
+    --muted: rgba(0, 0, 0, .6);
+    --card: #ececec;
+    --card-fg: #000;
+    --surface: #ffffff;
+    --button: #ececec;
+    --button-fg: #000;
+    --input: #ffffff;
+    --input-border: rgba(0, 0, 0, .38);
+    --focus: #0087f5;
+    --hint: rgba(0, 0, 0, .5);
+    --divider: #000000;
+    --result-title: #0087f5;
+    --dialog: #ffffff;
+    --dialog-action: #4a4a4a;
+    --hover: rgba(0, 0, 0, .06);
+    --ripple: rgba(0, 0, 0, .18);
+    --shadow-card:
+      0 2px 1px -1px rgba(0, 0, 0, .20),
+      0 1px 1px 0 rgba(0, 0, 0, .14),
+      0 1px 3px 0 rgba(0, 0, 0, .12);
+    --shadow-panel:
+      0 1px 2px rgba(0, 0, 0, .18),
+      0 2px 6px rgba(0, 0, 0, .08);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+      --scaffold: #545d63;
+      --appbar: #383e42;
+      --text: #ffffff;
+      --muted: rgba(255, 255, 255, .72);
+      --card: #383e42;
+      --card-fg: #ffffff;
+      --surface: #383e42;
+      --button: #383e42;
+      --button-fg: #ffffff;
+      --input: #383e42;
+      --input-border: rgba(255, 255, 255, .45);
+      --focus: #ffffff;
+      --hint: #ffffff;
+      --divider: #383e42;
+      --result-title: #383e42;
+      --dialog: #383e42;
+      --dialog-action: #d6d6d6;
+      --hover: rgba(255, 255, 255, .08);
+      --ripple: rgba(255, 255, 255, .20);
+      --shadow-card:
+        0 2px 1px -1px rgba(0, 0, 0, .30),
+        0 1px 1px 0 rgba(0, 0, 0, .24),
+        0 1px 3px 0 rgba(0, 0, 0, .22);
+      --shadow-panel:
+        0 1px 2px rgba(0, 0, 0, .32),
+        0 2px 6px rgba(0, 0, 0, .18);
+    }
+  }
+
+  * {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+    background: var(--scaffold);
+    color: var(--text);
+    font-family: "Roboto", "Segoe UI", Arial, sans-serif;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  button,
+  input {
+    font-family: inherit;
+  }
+
+  button {
+    touch-action: manipulation;
+  }
+
+  .app {
+    position: fixed;
+    inset: 0;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    background: var(--scaffold);
+    color: var(--text);
+  }
+
+  .page {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    background: var(--scaffold);
+    color: var(--text);
+    visibility: hidden;
+    transform: translateX(100%);
+    will-change: transform;
+    z-index: 1;
+  }
+
+  .page::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: #000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .4s cubic-bezier(.32, .72, 0, 1);
+    z-index: 20;
+  }
+
+  .page.active {
+    visibility: visible;
+    transform: translateX(0);
+  }
+
+  .page.sliding {
+    transition: transform .4s cubic-bezier(.32, .72, 0, 1);
+  }
+
+  .page.behind::after {
+    opacity: .08;
+  }
+
+  .appbar {
+    position: relative;
+    z-index: 10;
+    flex: 0 0 auto;
+    padding-top: var(--sat);
+    padding-left: var(--sal);
+    padding-right: var(--sar);
+    background: var(--appbar);
+    color: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .28);
+  }
+
+  .appbar-row {
+    display: flex;
+    align-items: center;
+    height: 56px;
+    padding: 0 4px;
+  }
+
+  .appbar h1 {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    padding: 0 8px;
+    font-size: 20px;
+    font-weight: 500;
+    letter-spacing: .15px;
+    line-height: 1.2;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .appbar.detail h1 {
+    padding-left: 4px;
+    text-align: left;
+  }
+
+  .icon-button {
+    position: relative;
+    overflow: hidden;
+    appearance: none;
+    border: 0;
+    background: transparent;
+    color: #fff;
+    width: 48px;
+    height: 48px;
+    flex: 0 0 48px;
+    padding: 0;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+  }
+
+  .icon-button svg {
+    width: 24px;
+    height: 24px;
+    display: block;
+  }
+
+  .icon-button:hover {
+    background: rgba(255, 255, 255, .10);
+  }
+
+  .page-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+    padding-bottom: calc(24px + var(--sab));
+    padding-left: var(--sal);
+    padding-right: var(--sar);
+    scrollbar-width: thin;
+  }
+
+  .home-body {
+    overflow-y: auto;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 20px;
+    row-gap: 10px;
+    width: 100%;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  .card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 0;
+    order: var(--ow);
+  }
+
+  .card-icon {
+    position: relative;
+    overflow: hidden;
+    appearance: none;
+    border: 0;
+    width: 138px;
+    height: 138px;
+    max-width: 100%;
+    padding: 8px;
+    border-radius: 20px;
+    display: grid;
+    place-items: center;
+    background: var(--card);
+    color: var(--card-fg);
+    box-shadow: var(--shadow-card);
+    cursor: pointer;
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .card-icon img {
+    width: 88%;
+    height: 88%;
+    object-fit: contain;
+    display: block;
+    pointer-events: none;
+  }
+
+  .card-icon.github img {
+    width: 72%;
+    height: 72%;
+    border-radius: 50%;
+  }
+
+  @media (hover: hover) {
+    .card-icon:hover {
+      background-image: linear-gradient(var(--hover), var(--hover));
+    }
+  }
+
+  .card-label {
+    margin-top: 5px;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.16;
+    text-align: center;
+    color: var(--text);
+    overflow-wrap: anywhere;
+  }
+
+  .calc-wrap {
+    width: 100%;
+    max-width: 760px;
+    margin: 0 auto;
+  }
+
+  .intro {
+    margin: 0;
+    padding: 10px 20px 0;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.35;
+    text-align: center;
+    color: var(--text);
+  }
+
+  .divider {
+    height: 1px;
+    margin: 16px 0 10px;
+    border: 0;
+    background: var(--divider);
+  }
+
+  .spacer-10 {
+    height: 10px;
+  }
+
+  .spacer-20 {
+    height: 20px;
+  }
+
+  .spacer-30 {
+    height: 30px;
+  }
+
+  .row-fields {
+    display: flex;
+    gap: 20px;
+    padding: 0 30px;
+  }
+
+  .row-fields.tight {
+    gap: 10px;
+    padding: 0 8px;
+  }
+
+  .row-fields.padded {
+    gap: 0;
+    padding: 0;
+  }
+
+  .row-fields.padded > .field-wrap {
+    flex: 1 1 0;
+    padding: 8px;
+  }
+
+  .field {
+    width: 100%;
+    height: 52px;
+    border: 1px solid var(--input-border);
+    border-radius: 10px;
+    background: var(--input);
+    color: var(--text);
+    font-size: 23px;
+    font-weight: 700;
+    line-height: 1.2;
+    text-align: center;
+    padding: 0 10px;
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+    transition: border-color .15s ease;
+  }
+
+  .field::placeholder {
+    color: var(--hint);
+    font-size: 20px;
+    font-style: italic;
+    font-weight: 400;
+    opacity: 1;
+  }
+
+  .field:focus {
+    border-color: var(--focus);
+  }
+
+  .center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px 20px 0;
+  }
+
+  .btn {
+    position: relative;
+    overflow: hidden;
+    appearance: none;
+    border: 0;
+    border-radius: 4px;
+    background: var(--button);
+    color: var(--button-fg);
+    box-shadow: var(--shadow-card);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  @media (hover: hover) {
+    .btn:hover {
+      background-image: linear-gradient(var(--hover), var(--hover));
+    }
+  }
+
+  .calc-button {
+    min-width: 128px;
+    height: 44px;
+    padding: 0 20px;
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: .1px;
+  }
+
+  .results {
+    margin-top: 10px;
+  }
+
+  .results[hidden] {
+    display: none;
+  }
+
+  .result-title {
+    background: var(--result-title);
+    color: #fff;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.3;
+    text-align: center;
+    padding: 4px 8px;
+    letter-spacing: .2px;
+  }
+
+  .result-title.compact {
+    font-size: 18px;
+    padding: 6px 10px;
+  }
+
+  .result-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 10px 20px;
+    font-size: 18px;
+    line-height: 1.25;
+  }
+
+  .result-row .value {
+    flex: 0 0 auto;
+    font-size: 20px;
+    font-weight: 700;
+    font-style: italic;
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .row-divider {
+    height: 1px;
+    margin: 0;
+    border: 0;
+    background: var(--divider);
+  }
+
+  .reset-wrap {
+    display: flex;
+    justify-content: center;
+    padding: 10px 0 0;
+  }
+
+  .reset-button {
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+  }
+
+  .reset-button svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .reset-button[hidden] {
+    display: none;
+  }
+
+  .labeled-rows {
+    padding: 0 20px;
+  }
+
+  .labeled-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .labeled-row + .labeled-row {
+    margin-top: 20px;
+  }
+
+  .labeled-row .label {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .labeled-row .field {
+    flex: 0 0 150px;
+    width: 150px;
+  }
+
+  .pair-results {
+    display: flex;
+    justify-content: space-around;
+    gap: 20px;
+    padding: 20px 20px 10px;
+    text-align: center;
+  }
+
+  .pair-label {
+    font-size: 17px;
+  }
+
+  .pair-value {
+    margin-top: 2px;
+    font-size: 20px;
+    font-weight: 700;
+    font-style: italic;
+  }
+
+  .panel {
+    margin: 10px 10px 0;
+    padding: 10px;
+    background: var(--result-title);
+    color: #fff;
+    box-shadow: var(--shadow-panel);
+  }
+
+  .panel-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 19px;
+    line-height: 1.3;
+  }
+
+  .panel-row .panel-label {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .panel-row .colon {
+    flex: 0 0 auto;
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  .panel-row .panel-value {
+    flex: 1 1 0;
+    min-width: 0;
+    font-size: 20px;
+    font-weight: 700;
+    text-align: center;
+  }
+
+  .panel-divider {
+    height: 1px;
+    margin: 8px 0;
+    border: 0;
+    background: #000;
+  }
+
+  .unit-panel {
+    margin: 0;
+    padding: 5px;
+    background: var(--result-title);
+    color: #fff;
+  }
+
+  .unit-line {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 6px;
+    font-size: 20px;
+    line-height: 1.25;
+  }
+
+  .unit-line .unit-source,
+  .unit-line .unit-value {
+    flex: 1 1 0;
+    min-width: 0;
+    text-align: center;
+  }
+
+  .unit-line .unit-value {
+    font-weight: 700;
+    font-style: italic;
+  }
+
+  .unit-colon {
+    flex: 0 0 auto;
+    font-size: 20px;
+    font-weight: 700;
+    font-style: italic;
+  }
+
+  .unit-divider {
+    height: 1px;
+    margin: 0;
+    border: 0;
+    background: #000;
+  }
+
+  .unit-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 0 10px;
+  }
+
+  .unit-heading {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    text-align: center;
+  }
+
+  .unit-input {
+    width: 300px;
+    max-width: calc(100% - 40px);
+  }
+
+  .section-title {
+    margin: 0;
+    padding: 4px 10px;
+    font-size: 20px;
+    font-weight: 700;
+    text-align: center;
+  }
+
+  .info-card {
+    margin: 0 8px 10px;
+    padding: 14px 12px;
+    border-radius: 4px;
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: var(--shadow-card);
+  }
+
+  .info-card h3 {
+    margin: 0 0 6px;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.25;
+    text-align: center;
+  }
+
+  .info-card .sub {
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1.35;
+    text-align: center;
+  }
+
+  .info-card .sub-line {
+    display: block;
+  }
+
+  .info-card .sub-small {
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .aqua-actions {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 48px;
+    padding: 0 8px;
+  }
+
+  .aqua-actions .reset-button {
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    transform: translateY(-50%);
+  }
+
+  .aqua-spacer {
+    display: none;
+  }
+
+  .sand-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .sand-field-wrap {
+    flex: 0 0 46%;
+    text-align: center;
+  }
+
+  .sand-field-wrap .field {
+    height: 48px;
+  }
+
+  .sand-caption {
+    font-size: 20px;
+    margin-bottom: 4px;
+  }
+
+  .sand-result {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1.35;
+    text-align: center;
+  }
+
+  .tabs {
+    position: relative;
+    display: flex;
+  }
+
+  .tab {
+    position: relative;
+    overflow: hidden;
+    flex: 1 1 0;
+    appearance: none;
+    border: 0;
+    background: transparent;
+    color: rgba(255, 255, 255, .75);
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.1;
+    text-align: center;
+    padding: 10px 4px 12px;
+    cursor: pointer;
+  }
+
+  .tab.active {
+    color: #fff;
+  }
+
+  .tab-indicator {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 50%;
+    height: 3px;
+    background: #fff;
+    transform: translateX(0);
+    transition: transform .25s cubic-bezier(.2, .8, .3, 1);
+  }
+
+  .tabs[data-active="tevkifat"] .tab-indicator {
+    transform: translateX(100%);
+  }
+
+  .kdv-body {
+    position: relative;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .tab-panel {
+    position: absolute;
+    inset: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+    padding-bottom: calc(24px + var(--sab));
+    padding-left: var(--sal);
+    padding-right: var(--sar);
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity .2s ease;
+    scrollbar-width: thin;
+  }
+
+  .tab-panel.active {
+    visibility: visible;
+    opacity: 1;
+  }
+
+  .kdv-fields {
+    display: flex;
+    gap: 5px;
+    padding: 8px 10px 2px;
+  }
+
+  .kdv-fields .field {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .kdv-actions {
+    padding: 5px 10px 0;
+  }
+
+  .kdv-section {
+    margin-top: 2px;
+  }
+
+  .kdv-section + .kdv-section {
+    margin-top: 2px;
+  }
+
+  .kdv-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 9px;
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  .kdv-row .kdv-value {
+    flex: 0 0 auto;
+    font-size: 18px;
+    font-weight: 400;
+    white-space: nowrap;
+  }
+
+  .rate-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    padding: 10px 8px 0;
+  }
+
+  .rate-button {
+    height: 42px;
+    padding: 0 6px;
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  .rate-button.full {
+    grid-column: 1 / -1;
+    height: 44px;
+  }
+
+  .tevkifat-results {
+    margin-top: 10px;
+  }
+
+  .dialog-scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: grid;
+    place-items: center;
+    padding: calc(24px + var(--sat)) calc(24px + var(--sar)) calc(24px + var(--sab)) calc(24px + var(--sal));
+    background: rgba(0, 0, 0, .38);
+    opacity: 0;
+    transition: opacity .16s ease;
+  }
+
+  .dialog-scrim[hidden] {
+    display: none;
+  }
+
+  .dialog-scrim.open {
+    opacity: 1;
+  }
+
+  .dialog {
+    width: min(100%, 380px);
+    max-height: calc(100dvh - var(--sat) - var(--sab) - 48px);
+    overflow-y: auto;
+    padding: 22px 20px 8px;
+    border-radius: 4px;
+    background: var(--dialog);
+    color: var(--text);
+    box-shadow:
+      0 12px 18px -6px rgba(0, 0, 0, .2),
+      0 24px 38px 3px rgba(0, 0, 0, .14),
+      0 9px 46px 8px rgba(0, 0, 0, .12);
+    transform: scale(.92);
+    opacity: 0;
+    transition: transform .18s cubic-bezier(.2, .8, .3, 1), opacity .18s ease;
+  }
+
+  .dialog-scrim.open .dialog {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  .dialog h2 {
+    margin: 0 0 16px;
+    font-size: 20px;
+    font-weight: 500;
+    text-align: left;
+  }
+
+  .dialog p {
+    margin: 0 0 18px;
+    font-size: 18px;
+    line-height: 1.4;
+  }
+
+  .dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    padding-bottom: 4px;
+  }
+
+  .dialog-close {
+    position: relative;
+    overflow: hidden;
+    appearance: none;
+    border: 0;
+    background: transparent;
+    color: var(--dialog-action);
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+  }
+
+  .dialog-close:hover {
+    background: var(--hover);
+  }
+
+  .dialog-close svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: calc(26px + var(--sab));
+    z-index: 200;
+    max-width: calc(100vw - 48px);
+    padding: 12px 20px;
+    border-radius: 16px;
+    background: rgba(38, 40, 43, .95);
+    color: #fff;
+    font-size: 14px;
+    line-height: 1.3;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    box-shadow: 0 6px 22px rgba(0, 0, 0, .28);
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, 14px);
+    transition: opacity .18s ease, transform .18s ease;
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+
+  .ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: var(--ripple);
+    transform: scale(0);
+    animation: ripple .48s ease-out forwards;
+    pointer-events: none;
+    z-index: 4;
+  }
+
+  @keyframes ripple {
+    0% { transform: scale(0); opacity: .45; }
+    55% { opacity: .28; }
+    100% { transform: scale(1); opacity: 0; }
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  .field:focus-visible {
+    outline: none;
+  }
+
+  @media (min-width: 600px) {
+    .grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      column-gap: 20px;
+      row-gap: 18px;
+      padding: 24px 32px;
+    }
+
+    .card-icon {
+      width: 128px;
+      height: 128px;
+    }
+
+    .card-label {
+      font-size: 16px;
+      line-height: 1.2;
+    }
+  }
+
+  @media (min-width: 1000px) {
+    .grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      max-width: 1140px;
+      padding: 30px 36px 40px;
+    }
+
+    .card-icon {
+      width: 132px;
+      height: 132px;
+    }
+  }
+
+  @media (max-width: 599px) {
+    .card {
+      order: var(--om);
+    }
+
+    .labeled-row .field {
+      flex-basis: 130px;
+      width: 130px;
+    }
+
+    .labeled-row .label {
+      font-size: 18px;
+    }
+
+    .kdv-row {
+      font-size: 16px;
+    }
+
+    .kdv-row .kdv-value {
+      font-size: 17px;
+    }
+
+    .panel-row {
+      font-size: 17px;
+    }
+
+    .panel-row .colon,
+    .panel-row .panel-value {
+      font-size: 18px;
+    }
+
+    .unit-line {
+      font-size: 18px;
+    }
+
+    .unit-colon {
+      font-size: 18px;
+    }
+  }
+
+  @media (max-width: 380px) {
+    .row-fields {
+      padding: 0 18px;
+      gap: 12px;
+    }
+
+    .field {
+      font-size: 20px;
+      padding: 0 6px;
+    }
+
+    .field::placeholder {
+      font-size: 17px;
+    }
+
+    .labeled-row {
+      gap: 8px;
+    }
+
+    .labeled-row .label {
+      font-size: 16px;
+    }
+
+    .labeled-row .field {
+      flex-basis: 118px;
+      width: 118px;
+      font-size: 20px;
+    }
+
+    .card-icon {
+      width: 124px;
+      height: 124px;
+    }
+
+    .card-label {
+      font-size: 18px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .page,
+    .page.sliding,
+    .page::after,
+    .tab-indicator,
+    .tab-panel,
+    .dialog,
+    .dialog-scrim,
+    .toast {
+      transition: none !important;
+    }
+
+    .ripple {
+      animation: none;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <section class="page active" data-page="home" aria-label="Ana ekran">
+    <header class="appbar">
+      <div class="appbar-row">
+        <h1>HesapMatik</h1>
+      </div>
+    </header>
+    <main class="page-body home-body">
+      <div class="grid" id="grid"></div>
+    </main>
+  </section>
+
+  <section class="page" data-page="kdv" aria-label="KDV Hesaplayıcısı">
+    <header class="appbar">
+      <div class="appbar-row detail">
+        <button type="button" class="icon-button" data-back aria-label="Geri" data-ripple>
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2Z"/></svg>
+        </button>
+        <h1>KDV Hesaplayıcısı</h1>
+      </div>
+      <nav class="tabs" id="kdvTabs" data-active="normal" role="tablist" aria-label="KDV hesaplama türü">
+        <button type="button" class="tab active" data-tab="normal" role="tab" aria-selected="true" data-ripple>KDV<br>Hesaplama</button>
+        <button type="button" class="tab" data-tab="tevkifat" role="tab" aria-selected="false" data-ripple>Tevkifatlı<br>KDV Hesaplama</button>
+        <span class="tab-indicator" aria-hidden="true"></span>
+      </nav>
+    </header>
+    <main class="page-body kdv-body">
+      <div class="tab-panel active" data-panel="normal" role="tabpanel">
+        <div class="calc-wrap">
+          <div class="kdv-fields">
+            <input class="field" id="kdvAmount" type="text" inputmode="decimal" autocomplete="off" placeholder="Tutar" aria-label="Tutar">
+            <input class="field" id="kdvRate" type="text" inputmode="numeric" autocomplete="off" placeholder="KDV Oranı" aria-label="KDV oranı">
+          </div>
+          <div class="center kdv-actions">
+            <button type="button" class="btn calc-button" id="kdvCalculate" data-ripple>HESAPLA</button>
+          </div>
+          <div class="results" id="kdvResults">
+            <div class="kdv-section">
+              <div class="result-title">KDV Hariç Hesaplama</div>
+              <div class="kdv-row"><span>Matrah</span><span class="kdv-value" id="kdvExclBase">0.00</span></div>
+              <hr class="row-divider">
+              <div class="kdv-row"><span>KDV Tutarı</span><span class="kdv-value" id="kdvExclVat">0.00</span></div>
+              <hr class="row-divider">
+              <div class="kdv-row"><span>Toplam Tutar</span><span class="kdv-value" id="kdvExclTotal">0.00</span></div>
+            </div>
+            <div class="kdv-section">
+              <div class="result-title">KDV Dahil Hesaplama</div>
+              <div class="kdv-row"><span>Matrah</span><span class="kdv-value" id="kdvInclBase">0.00</span></div>
+              <hr class="row-divider">
+              <div class="kdv-row"><span>KDV Tutarı</span><span class="kdv-value" id="kdvInclVat">0.00</span></div>
+              <hr class="row-divider">
+              <div class="kdv-row"><span>Toplam Tutar</span><span class="kdv-value" id="kdvInclTotal">0.00</span></div>
+            </div>
+            <div class="reset-wrap">
+              <button type="button" class="btn reset-button" id="kdvReset" data-ripple aria-label="Sıfırla" hidden>
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 5V1L7 6l5 5V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7Z"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-panel="tevkifat" role="tabpanel">
+        <div class="calc-wrap">
+          <div class="kdv-fields">
+            <input class="field" id="tvAmount" type="text" inputmode="decimal" autocomplete="off" placeholder="Tutar" aria-label="Tutar">
+            <input class="field" id="tvRate" type="text" inputmode="numeric" autocomplete="off" placeholder="KDV Oranı" aria-label="KDV oranı">
+          </div>
+          <div class="rate-grid">
+            <button type="button" class="btn rate-button" data-rate="2" data-factor="0.20" data-ripple>2/10</button>
+            <button type="button" class="btn rate-button" data-rate="4" data-factor="0.40" data-ripple>4/10</button>
+            <button type="button" class="btn rate-button" data-rate="7" data-factor="0.70" data-ripple>7/10</button>
+            <button type="button" class="btn rate-button" data-rate="3" data-factor="0.30" data-ripple>3/10</button>
+            <button type="button" class="btn rate-button" data-rate="5" data-factor="0.50" data-ripple>5/10</button>
+            <button type="button" class="btn rate-button" data-rate="9" data-factor="0.90" data-ripple>9/10</button>
+            <button type="button" class="btn rate-button full" data-rate="10" data-factor="1" data-ripple>Tam Tevkifat (10/10)</button>
+          </div>
+          <div class="tevkifat-results" id="tvResults" hidden>
+            <div class="kdv-section">
+              <div class="result-title compact">KDV Hariç Tutardan Tevkifat Hesaplama</div>
+              <div class="kdv-row"><span>Matrah</span><span class="kdv-value" id="tvExclBase">0.00</span></div>
+              <hr class="row-divider">
+              <div class="kdv-row"><span>KDV Tutarı</span><span class="kdv-value" id="tvExclVat">0.00</span></div>
+              <hr class="row-divider">
+              <div class="kdv-row"><span>KDV Dahil Toplam Tutar</span><span class="kdv-value" id="tvExclWithVat">0.00</span></div>
+              <hr class="row-divider">
+              <div class="kdv-row"><span>Tevkifat Tutarı</span><span class="kdv-value" id="tvExclWithheld">0.00</span></div>
+              <hr class="row-divider">
+              <div class="kdv-row"><span>Tevkifat Sonrası KDV Tutarı</span><span class="kdv-value" id="tvExclVatAfter">0.00</span></div>
+              <hr class="row-divider">
+              <div class="kdv-row"><span>Toplam Tutar</span><span class="kdv-value" id="tvExclTotal">0.00</span></div>
+            </div>
+            <div class="kdv-section">
+              <div class="result-title compact">KDV Dahil Tutardan Tevkifat Hesaplama</div>
+              <div class="kdv-row"><span>Matrah</span><span class="kdv-value" id="tvInclBase">0.00</span></div>
+              <hr class="row-divider">
+              <div class="kdv-row"><span>KDV Tutarı</span><span class="kdv-value" id="tvInclVat">0.00</span></div>
+              <hr class="row-divider">
+              <div class="kdv-row"><span>KDV Dahil Toplam Tutar</span><span class="kdv-value" id="tvInclWithVat">0.00</span></div>
+              <hr class="row-divider">
+              <div class="kdv-row"><span>Tevkifat Tutarı</span><span class="kdv-value" id="tvInclWithheld">0.00</span></div>
+              <hr class="row-divider">
+              <div class="kdv-row"><span>Tevkifat Sonrası KDV Tutarı</span><span class="kdv-value" id="tvInclVatAfter">0.00</span></div>
+              <hr class="row-divider">
+              <div class="kdv-row"><span>Toplam Tutar</span><span class="kdv-value" id="tvInclTotal">0.00</span></div>
+            </div>
+            <div class="reset-wrap">
+              <button type="button" class="btn reset-button" id="tvReset" data-ripple aria-label="Sıfırla">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 5V1L7 6l5 5V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7Z"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </section>
+
+  <section class="page" data-page="yuzde" aria-label="Yüzde Hesaplama">
+    <header class="appbar">
+      <div class="appbar-row detail">
+        <button type="button" class="icon-button" data-back aria-label="Geri" data-ripple>
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2Z"/></svg>
+        </button>
+        <h1>Yüzde Hesaplama</h1>
+      </div>
+    </header>
+    <main class="page-body">
+      <div class="calc-wrap">
+        <p class="intro">Elinizdeki sayıların birbiriyle olan yüzdeleme hesaplamalarını kolayca elde edebilirsiniz.</p>
+        <hr class="divider">
+        <div class="row-fields">
+          <input class="field" id="yzFirst" type="text" inputmode="decimal" autocomplete="off" placeholder="1.Sayı" aria-label="1. sayı">
+          <input class="field" id="yzSecond" type="text" inputmode="decimal" autocomplete="off" placeholder="2.Sayı" aria-label="2. sayı">
+        </div>
+        <div class="center">
+          <button type="button" class="btn calc-button" id="yzCalculate" data-ripple>HESAPLA</button>
+        </div>
+        <div class="results" id="yzResults" hidden>
+          <div class="result-title">SONUÇ</div>
+          <div class="result-row"><span id="yzLabel1"></span><span class="value" id="yzValue1"></span></div>
+          <hr class="row-divider">
+          <div class="result-row"><span id="yzLabel2"></span><span class="value" id="yzValue2"></span></div>
+          <hr class="row-divider">
+          <div class="result-row"><span id="yzLabel3"></span><span class="value" id="yzValue3"></span></div>
+          <hr class="row-divider">
+          <div class="result-row"><span id="yzLabel4"></span><span class="value" id="yzValue4"></span></div>
+          <hr class="row-divider">
+          <div class="reset-wrap">
+            <button type="button" class="btn reset-button" id="yzReset" data-ripple aria-label="Sıfırla">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 5V1L7 6l5 5V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7Z"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </section>
+
+  <section class="page" data-page="yakit" aria-label="Yakıt Tüketimi">
+    <header class="appbar">
+      <div class="appbar-row detail">
+        <button type="button" class="icon-button" data-back aria-label="Geri" data-ripple>
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2Z"/></svg>
+        </button>
+        <h1>Yakıt Tüketimi</h1>
+      </div>
+    </header>
+    <main class="page-body">
+      <div class="calc-wrap">
+        <p class="intro">Aracınızın bilgilerini girerek<br>km'de kaç LT tükettiğini<br>ve kaç ₺ yaktığını hesaplayabilirsiniz.</p>
+        <div class="spacer-10"></div>
+        <hr class="divider">
+        <div class="labeled-rows">
+          <div class="labeled-row">
+            <span class="label">Depo Kapasitesi</span>
+            <input class="field" id="ykTank" type="text" inputmode="decimal" autocomplete="off" placeholder="LT" aria-label="Depo kapasitesi">
+          </div>
+          <div class="labeled-row">
+            <span class="label">Tam Depo Gidilen KM</span>
+            <input class="field" id="ykKm" type="text" inputmode="decimal" autocomplete="off" placeholder="KM" aria-label="Tam depo gidilen kilometre">
+          </div>
+          <div class="labeled-row">
+            <span class="label">Yakıt Litre Fiyatı</span>
+            <input class="field" id="ykPrice" type="text" inputmode="decimal" autocomplete="off" placeholder="₺" aria-label="Yakıt litre fiyatı">
+          </div>
+        </div>
+        <div class="center">
+          <button type="button" class="btn calc-button" id="ykCalculate" data-ripple>HESAPLA</button>
+        </div>
+        <div class="spacer-20"></div>
+        <div class="results" id="ykResults" hidden>
+          <div class="result-title compact">ARACINIZ KM BAŞINA ORTALAMA YAKIT TÜKETİMİ</div>
+          <div class="pair-results">
+            <div>
+              <div class="pair-label">Litre</div>
+              <div class="pair-value" id="ykLiters">0.00 LT</div>
+            </div>
+            <div>
+              <div class="pair-label">Fiyat</div>
+              <div class="pair-value" id="ykCost">0.00 ₺</div>
+            </div>
+          </div>
+          <div class="reset-wrap">
+            <button type="button" class="btn reset-button" id="ykReset" data-ripple aria-label="Sıfırla">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 5V1L7 6l5 5V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7Z"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </section>
+
+  <section class="page" data-page="akvaryum" aria-label="Akvaryum Gereksinimleri">
+    <header class="appbar">
+      <div class="appbar-row detail">
+        <button type="button" class="icon-button" data-back aria-label="Geri" data-ripple>
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2Z"/></svg>
+        </button>
+        <h1>Akvaryum</h1>
+      </div>
+    </header>
+    <main class="page-body">
+      <div class="calc-wrap">
+        <div class="spacer-10"></div>
+        <p class="intro">Akvaryumunuzun bilgilerini<br>cm cinsinden giriniz.</p>
+        <hr class="divider">
+        <div class="spacer-10"></div>
+        <div class="row-fields tight">
+          <input class="field" id="aqDepth" type="text" inputmode="decimal" autocomplete="off" placeholder="Derinlik" aria-label="Derinlik">
+          <input class="field" id="aqWidth" type="text" inputmode="decimal" autocomplete="off" placeholder="En" aria-label="En">
+          <input class="field" id="aqLength" type="text" inputmode="decimal" autocomplete="off" placeholder="Uzunluk" aria-label="Uzunluk">
+        </div>
+        <div class="center aqua-actions">
+          <button type="button" class="btn calc-button" id="aqCalculate" data-ripple>HESAPLA</button>
+          <button type="button" class="btn reset-button" id="aqReset" data-ripple aria-label="Sıfırla" hidden>
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 5V1L7 6l5 5V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7Z"/></svg>
+          </button>
+          <span class="aqua-spacer" id="aqSpacer" aria-hidden="true"></span>
+        </div>
+        <div class="spacer-10"></div>
+        <div class="info-card">
+          <h3>Akvaryumunuzun Kapasitesi</h3>
+          <div class="sub" id="aqVolume"></div>
+        </div>
+        <div class="info-card">
+          <h3>Tavsiye Edilen Işık Gücü</h3>
+          <div class="sub" id="aqLight"></div>
+        </div>
+        <div class="info-card">
+          <h3>Filtrasyon</h3>
+          <div class="sub" id="aqFilter"></div>
+        </div>
+        <div class="info-card">
+          <h3>Tavsiye Edilen Isıtıcı Gücü</h3>
+          <div class="sub" id="aqHeater"></div>
+        </div>
+        <div class="info-card">
+          <h3>İstenilen Kum Kalınlığı</h3>
+          <div class="sand-row">
+            <div class="sand-field-wrap">
+              <div class="sand-caption">cm</div>
+              <input class="field" id="aqSand" type="text" inputmode="decimal" autocomplete="off" placeholder="Kum" aria-label="Kum kalınlığı" value="5">
+            </div>
+            <div class="sand-result" id="aqSandResult"></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </section>
+
+  <section class="page" data-page="komisyon" aria-label="İndirim Komisyon Hesaplama">
+    <header class="appbar">
+      <div class="appbar-row detail">
+        <button type="button" class="icon-button" data-back aria-label="Geri" data-ripple>
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2Z"/></svg>
+        </button>
+        <h1>İndirim-Komisyon Hesaplama</h1>
+      </div>
+    </header>
+    <main class="page-body">
+      <div class="calc-wrap">
+        <div class="spacer-10"></div>
+        <h2 class="section-title">Oran Hesaplaması</h2>
+        <div class="row-fields padded">
+          <div class="field-wrap">
+            <input class="field" id="kmPrincipal1" type="text" inputmode="decimal" autocomplete="off" placeholder="Ana Para" aria-label="Ana para">
+          </div>
+          <div class="field-wrap">
+            <input class="field" id="kmDiscount" type="text" inputmode="decimal" autocomplete="off" placeholder="İndirim Tutarı (₺)" aria-label="İndirim tutarı">
+          </div>
+        </div>
+        <div class="center">
+          <button type="button" class="btn calc-button" id="kmCalculate1" data-ripple>HESAPLA</button>
+        </div>
+        <div class="panel" id="kmPanel1" hidden>
+          <div class="panel-row">
+            <span class="panel-label">İndirim-Komisyon Oranı</span>
+            <span class="colon">:</span>
+            <span class="panel-value" id="kmRate">% 0.00</span>
+          </div>
+          <hr class="panel-divider">
+          <div class="panel-row">
+            <span class="panel-label">İndirim Sonucu</span>
+            <span class="colon">:</span>
+            <span class="panel-value" id="kmNet1">0.00 ₺</span>
+          </div>
+        </div>
+        <div class="reset-wrap">
+          <button type="button" class="btn reset-button" id="kmReset1" data-ripple aria-label="Sıfırla" hidden>
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 5V1L7 6l5 5V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7Z"/></svg>
+          </button>
+        </div>
+        <div class="spacer-10"></div>
+        <hr class="divider">
+        <div class="spacer-10"></div>
+        <h2 class="section-title">Tutar Hesaplaması</h2>
+        <div class="row-fields padded">
+          <div class="field-wrap">
+            <input class="field" id="kmPrincipal2" type="text" inputmode="decimal" autocomplete="off" placeholder="Ana Para" aria-label="Ana para">
+          </div>
+          <div class="field-wrap">
+            <input class="field" id="kmPercent" type="text" inputmode="decimal" autocomplete="off" placeholder="İndirim Oranı (%)" aria-label="İndirim oranı">
+          </div>
+        </div>
+        <div class="center">
+          <button type="button" class="btn calc-button" id="kmCalculate2" data-ripple>HESAPLA</button>
+        </div>
+        <div class="panel" id="kmPanel2" hidden>
+          <div class="panel-row">
+            <span class="panel-label">İndirim-Komisyon Tutarı</span>
+            <span class="colon">:</span>
+            <span class="panel-value" id="kmAmount">0.00 ₺</span>
+          </div>
+          <hr class="panel-divider">
+          <div class="panel-row">
+            <span class="panel-label">İndirim Sonucu</span>
+            <span class="colon">:</span>
+            <span class="panel-value" id="kmNet2">0.00 ₺</span>
+          </div>
+        </div>
+        <div class="reset-wrap">
+          <button type="button" class="btn reset-button" id="kmReset2" data-ripple aria-label="Sıfırla" hidden>
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 5V1L7 6l5 5V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7Z"/></svg>
+          </button>
+        </div>
+        <div class="spacer-30"></div>
+      </div>
+    </main>
+  </section>
+
+  <section class="page" data-page="vucut" aria-label="Vücut Kitle Endeksi">
+    <header class="appbar">
+      <div class="appbar-row detail">
+        <button type="button" class="icon-button" data-back aria-label="Geri" data-ripple>
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2Z"/></svg>
+        </button>
+        <h1>Vücut Kitle Endeksi</h1>
+      </div>
+    </header>
+    <main class="page-body">
+      <div class="calc-wrap">
+        <p class="intro" style="padding-top:8px">18 yaşına kadar olan bireylerin<br>Vücut Kitle Endekslerini öğrenmeleri için<br>diyetisyenlerden yardım almaları önerilir.</p>
+        <hr class="divider">
+        <div class="row-fields padded">
+          <div class="field-wrap">
+            <input class="field" id="vkWeight" type="text" inputmode="decimal" autocomplete="off" placeholder="Kilo" aria-label="Kilo">
+          </div>
+          <div class="field-wrap">
+            <input class="field" id="vkHeight" type="text" inputmode="numeric" autocomplete="off" placeholder="Boy(cm)" aria-label="Boy santimetre">
+          </div>
+        </div>
+        <div class="center">
+          <button type="button" class="btn calc-button" id="vkCalculate" data-ripple>HESAPLA</button>
+        </div>
+        <div class="spacer-20"></div>
+        <div class="results" id="vkResults" hidden>
+          <div class="result-title" id="vkTitle">VÜCUT KİTLE ENDEKSİNİZ : 0.00</div>
+          <div class="spacer-10"></div>
+          <div class="section-title">Yorum</div>
+          <hr class="row-divider">
+          <p class="result-row" id="vkComment" style="display:block; font-size:20px; color:var(--text); padding:10px 20px;"></p>
+          <div class="spacer-30"></div>
+          <div class="reset-wrap">
+            <button type="button" class="btn reset-button" id="vkReset" data-ripple aria-label="Sıfırla">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 5V1L7 6l5 5V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7Z"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </section>
+
+  <section class="page" data-page="beygir" aria-label="Kilowatt Beygir Gücü">
+    <header class="appbar">
+      <div class="appbar-row detail">
+        <button type="button" class="icon-button" data-back aria-label="Geri" data-ripple>
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2Z"/></svg>
+        </button>
+        <h1>Kilowatt (kW) ⇄ Beygir Gücü (hp)</h1>
+      </div>
+    </header>
+    <main class="page-body">
+      <div class="calc-wrap">
+        <div class="spacer-20"></div>
+        <div class="unit-section">
+          <h2 class="unit-heading">Kilowatt (kW)</h2>
+          <input class="field unit-input" id="bgKw" type="text" inputmode="decimal" autocomplete="off" placeholder="kW" aria-label="Kilowatt">
+          <button type="button" class="btn calc-button" id="bgKwCalculate" data-ripple>HESAPLA</button>
+        </div>
+        <div class="spacer-10"></div>
+        <div class="unit-panel" id="bgKwResults" hidden>
+          <div class="unit-line"><span class="unit-source" data-kw-source></span><span class="unit-colon">:</span><span class="unit-value" id="bgHp"></span></div>
+          <hr class="unit-divider">
+          <div class="unit-line"><span class="unit-source" data-kw-source></span><span class="unit-colon">:</span><span class="unit-value" id="bgBhp"></span></div>
+          <hr class="unit-divider">
+          <div class="unit-line"><span class="unit-source" data-kw-source></span><span class="unit-colon">:</span><span class="unit-value" id="bgEhp"></span></div>
+          <hr class="unit-divider">
+          <div class="unit-line"><span class="unit-source" data-kw-source></span><span class="unit-colon">:</span><span class="unit-value" id="bgMhp"></span></div>
+        </div>
+        <div class="reset-wrap">
+          <button type="button" class="btn reset-button" id="bgKwReset" data-ripple aria-label="Sıfırla" hidden>
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 5V1L7 6l5 5V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7Z"/></svg>
+          </button>
+        </div>
+        <hr class="divider">
+        <div class="unit-section">
+          <h2 class="unit-heading">Beygir Gücü (hp)</h2>
+          <input class="field unit-input" id="bgHpInput" type="text" inputmode="decimal" autocomplete="off" placeholder="hp" aria-label="Beygir gücü">
+          <button type="button" class="btn calc-button" id="bgHpCalculate" data-ripple>HESAPLA</button>
+        </div>
+        <div class="spacer-10"></div>
+        <div class="unit-panel" id="bgHpResults" hidden>
+          <div class="unit-line"><span class="unit-source" data-hp-source></span><span class="unit-colon">:</span><span class="unit-value" id="bgHpKw"></span></div>
+          <hr class="unit-divider">
+          <div class="unit-line"><span class="unit-source" data-hp-source data-hp-kind="bhp"></span><span class="unit-colon">:</span><span class="unit-value" id="bgHpBhpKw"></span></div>
+          <hr class="unit-divider">
+          <div class="unit-line"><span class="unit-source" data-hp-source data-hp-kind="ehp"></span><span class="unit-colon">:</span><span class="unit-value" id="bgHpEhpKw"></span></div>
+          <hr class="unit-divider">
+          <div class="unit-line"><span class="unit-source" data-hp-source data-hp-kind="mhp"></span><span class="unit-colon">:</span><span class="unit-value" id="bgHpMhpKw"></span></div>
+        </div>
+        <div class="reset-wrap">
+          <button type="button" class="btn reset-button" id="bgHpReset" data-ripple aria-label="Sıfırla" hidden>
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 5V1L7 6l5 5V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7Z"/></svg>
+          </button>
+        </div>
+        <div class="spacer-30"></div>
+      </div>
+    </main>
+  </section>
+</div>
+
+<div class="dialog-scrim" id="dialogScrim" hidden>
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dialogTitle">
+    <h2 id="dialogTitle"></h2>
+    <div id="dialogBody"></div>
+    <div class="dialog-actions">
+      <button type="button" class="dialog-close" id="dialogClose" aria-label="Kapat" data-ripple>
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+  const $ = (selector, root = document) => root.querySelector(selector);
+  const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
+
+  const pages = new Map($$("[data-page]").map((page) => [page.dataset.page, page]));
+  const titles = {
+    home: "HesapMatik",
+    kdv: "KDV Hesaplayıcısı",
+    yuzde: "Yüzde Hesaplama",
+    yakit: "Yakıt Tüketimi",
+    akvaryum: "Akvaryum",
+    komisyon: "İndirim-Komisyon Hesaplama",
+    vucut: "Vücut Kitle Endeksi",
+    beygir: "Kilowatt (kW) ⇄ Beygir Gücü (hp)"
+  };
+
+  const apps = [
+    { key: "kdv", title: "KDV Hesaplama", label: "KDV<br>Hesaplama", image: "percentage.png", mobileOrder: 1, webOrder: 1 },
+    { key: "yuzde", title: "Yüzde Hesaplama", label: "Yüzde<br>Hesaplama", image: "yuzde.png", mobileOrder: 2, webOrder: 5 },
+    { key: "yakit", title: "Yakıt Tüketimi", label: "Yakıt<br>Tüketimi", image: "petrol.png", mobileOrder: 3, webOrder: 7 },
+    { key: "akvaryum", title: "Akvaryum Gereksinimleri", label: "Akvaryum<br>Gereksinimleri", image: "aquarium.png", mobileOrder: 4, webOrder: 3 },
+    { key: "komisyon", title: "İndirim Komisyon", label: "İndirim<br>Komisyon", image: "commission.png", mobileOrder: 5, webOrder: 2 },
+    { key: "vucut", title: "Vücut Kitle Endeksi", label: "Vücut Kitle<br>Endeksi", image: "love.png", mobileOrder: 6, webOrder: 4 },
+    { key: "beygir", title: "kW ⇄ hp", label: "kW ⇄ hp", image: "horse-power.png", mobileOrder: 7, webOrder: 6 },
+    { key: "github", title: "GitHub", label: "GitHub", image: "github.png", mobileOrder: 99, webOrder: 99, href: "https://github.com/batuhansavas-yilmaz/hesapmatikweb" }
+  ];
+
+  const grid = $("#grid");
+  apps.forEach((app) => {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.style.setProperty("--mo", app.mobileOrder);
+    card.style.setProperty("--wo", app.webOrder);
+    if (app.href) {
+      card.innerHTML =
+        '<a class="card-icon github" href="' + app.href + '" target="_blank" rel="noopener" data-ripple aria-label="' + app.title + '">' +
+          '<img src="assets/' + app.image + '" alt="" draggable="false">' +
+        '</a>' +
+        '<div class="card-label">' + app.label + '</div>';
+    } else {
+      card.innerHTML =
+        '<button type="button" class="card-icon" data-nav="' + app.key + '" data-ripple aria-label="' + app.title + '">' +
+          '<img src="assets/' + app.image + '" alt="" draggable="false">' +
+        '</button>' +
+        '<div class="card-label">' + app.label + '</div>';
+    }
+    grid.appendChild(card);
+  });
+
+  function dartRound(value, digits = 2) {
+    if (!Number.isFinite(value)) return value;
+    const factor = Math.pow(10, digits);
+    return Math.sign(value) * Math.round(Math.abs(value) * factor) / factor;
+  }
+
+  function fixed(value, digits = 2) {
+    return Number.isFinite(value) ? value.toFixed(digits) : String(value);
+  }
+
+  function numericValue(input) {
+    if (!input.value) return NaN;
+    return Number(input.value);
+  }
+
+  function showToast(message) {
+    const toast = $("#toast");
+    toast.textContent = message;
+    toast.classList.add("show");
+    clearTimeout(showToast.timer);
+    showToast.timer = setTimeout(() => toast.classList.remove("show"), 2000);
+  }
+
+  const scrim = $("#dialogScrim");
+  const dialogTitle = $("#dialogTitle");
+  const dialogBody = $("#dialogBody");
+
+  function openDialog(title, bodyHtml) {
+    dialogTitle.textContent = title;
+    dialogBody.innerHTML = bodyHtml;
+    scrim.hidden = false;
+    requestAnimationFrame(() => scrim.classList.add("open"));
+  }
+
+  function closeDialog() {
+    scrim.classList.remove("open");
+    setTimeout(() => { scrim.hidden = true; }, 170);
+  }
+
+  $("#dialogClose").addEventListener("click", closeDialog);
+  scrim.addEventListener("click", (event) => {
+    if (event.target === scrim) closeDialog();
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !scrim.hidden) closeDialog();
+  });
+
+  document.addEventListener("pointerdown", (event) => {
+    const host = event.target.closest("[data-ripple]");
+    if (!host || host.disabled) return;
+    const rect = host.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height) * 2.1;
+    const ripple = document.createElement("span");
+    ripple.className = "ripple";
+    ripple.style.width = size + "px";
+    ripple.style.height = size + "px";
+    ripple.style.left = (event.clientX - rect.left - size / 2) + "px";
+    ripple.style.top = (event.clientY - rect.top - size / 2) + "px";
+    host.appendChild(ripple);
+    ripple.addEventListener("animationend", () => ripple.remove());
+  }, { passive: true });
+
+  function filterNumeric(input, maxDecimals, digitsOnly) {
+    input.addEventListener("input", () => {
+      let value = input.value.replace(/,/g, ".");
+      if (digitsOnly) {
+        value = value.replace(/\D/g, "");
+      } else {
+        value = value.replace(/[^\d.]/g, "");
+        const parts = value.split(".");
+        if (parts.length > 1) {
+          value = parts.shift() + "." + parts.join("");
+        }
+        if (value.startsWith(".")) value = "0" + value;
+        const dot = value.indexOf(".");
+        if (dot !== -1) {
+          const limit = typeof maxDecimals === "number" ? maxDecimals : 10;
+          value = value.slice(0, dot + 1) + value.slice(dot + 1).replace(/\./g, "").slice(0, limit);
+        }
+      }
+      if (input.maxLength && input.maxLength > 0) {
+        value = value.slice(0, input.maxLength);
+      }
+      input.value = value;
+    });
+  }
+
+  function onEnter(input, handler) {
+    input.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        handler();
+      }
+    });
+  }
+
+  filterNumeric($("#kdvAmount"), 2, false);
+  filterNumeric($("#kdvRate"), 0, true);
+  filterNumeric($("#tvAmount"), 2, false);
+  filterNumeric($("#tvRate"), 0, true);
+  filterNumeric($("#yzFirst"), 10, false);
+  filterNumeric($("#yzSecond"), 10, false);
+  filterNumeric($("#ykTank"), 2, false);
+  filterNumeric($("#ykKm"), 2, false);
+  filterNumeric($("#ykPrice"), 2, false);
+  filterNumeric($("#aqDepth"), 2, false);
+  filterNumeric($("#aqWidth"), 2, false);
+  filterNumeric($("#aqLength"), 2, false);
+  filterNumeric($("#aqSand"), 2, false);
+  filterNumeric($("#kmPrincipal1"), 2, false);
+  filterNumeric($("#kmDiscount"), 2, false);
+  filterNumeric($("#kmPrincipal2"), 2, false);
+  filterNumeric($("#kmPercent"), 2, false);
+  filterNumeric($("#vkWeight"), 2, false);
+  filterNumeric($("#vkHeight"), 0, true);
+  $("#vkHeight").maxLength = 3;
+  filterNumeric($("#bgKw"), 10, false);
+  filterNumeric($("#bgHpInput"), 10, false);
+
+  let offerShown = false;
+  let bmiWarningShown = false;
+
+  function showOfferDialog() {
+    openDialog("Öneri", '<p>Toplam tutarınıza indirim uygulamak isterseniz <strong>İNDİRİM-KOMİSYON HESAPLA</strong> sayfamızdan yararlanabilirsiniz.</p>');
+  }
+
+  function kdvCalculate() {
+    const amountInput = $("#kdvAmount");
+    const rateInput = $("#kdvRate");
+    if (!amountInput.value || !rateInput.value) {
+      showToast("Lütfen bir değer girin");
+      return;
+    }
+    const amount = numericValue(amountInput);
+    const rate = numericValue(rateInput);
+    if (Number.isNaN(amount) || Number.isNaN(rate)) {
+      showToast("Lütfen bir değer girin");
+      return;
+    }
+
+    const vatOnly = dartRound(amount * (rate / 100));
+    const baseOnly = dartRound(amount);
+    const totalOnly = dartRound(vatOnly + baseOnly);
+    const baseIncluded = dartRound(amount / ((rate / 100) + 1));
+    const vatIncluded = dartRound(amount - baseIncluded);
+    const totalIncluded = dartRound(amount);
+
+    $("#kdvExclBase").textContent = fixed(baseOnly);
+    $("#kdvExclVat").textContent = fixed(vatOnly);
+    $("#kdvExclTotal").textContent = fixed(totalOnly);
+    $("#kdvInclBase").textContent = fixed(baseIncluded);
+    $("#kdvInclVat").textContent = fixed(vatIncluded);
+    $("#kdvInclTotal").textContent = fixed(totalIncluded);
+    $("#kdvReset").hidden = false;
+
+    showToast("KDV'niz %" + rate.toFixed(0) + " oranıyla hesaplanmıştır");
+    if (!offerShown) {
+      offerShown = true;
+      showOfferDialog();
+    }
+  }
+
+  function kdvReset() {
+    $("#kdvAmount").value = "";
+    $("#kdvRate").value = "";
+    ["#kdvExclBase", "#kdvExclVat", "#kdvExclTotal", "#kdvInclBase", "#kdvInclVat", "#kdvInclTotal"].forEach((id) => {
+      $(id).textContent = "0.00";
+    });
+    $("#kdvReset").hidden = true;
+    $("#kdvAmount").focus();
+  }
+
+  $("#kdvCalculate").addEventListener("click", kdvCalculate);
+  $("#kdvReset").addEventListener("click", kdvReset);
+  onEnter($("#kdvAmount"), kdvCalculate);
+  onEnter($("#kdvRate"), kdvCalculate);
+
+  const rateButtons = $$(".rate-button");
+  rateButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const amountInput = $("#tvAmount");
+      const rateInput = $("#tvRate");
+      if (!amountInput.value || !rateInput.value) {
+        showToast("Lütfen bir değer girin");
+        return;
+      }
+      const amount = numericValue(amountInput);
+      const rate = numericValue(rateInput);
+      if (Number.isNaN(amount) || Number.isNaN(rate)) {
+        showToast("Lütfen bir değer girin");
+        return;
+      }
+
+      const factor = Number(button.dataset.factor);
+      const rateLabel = Number(button.dataset.rate);
+
+      const baseExcl = dartRound(amount);
+      const vatBefore = dartRound(amount * (rate / 100));
+      const withVatExcl = dartRound(amount + vatBefore);
+      const withheldExcl = dartRound(vatBefore * factor);
+      const vatAfterExcl = dartRound(vatBefore - withheldExcl);
+      const totalExcl = dartRound(amount + vatAfterExcl);
+
+      const baseIncl = dartRound(amount / ((rate / 100) + 1));
+      const vatBeforeIncl = dartRound(baseIncl * (rate / 100));
+      const withVatIncl = dartRound(amount);
+      const withheldIncl = dartRound(vatBeforeIncl * factor);
+      const vatAfterIncl = dartRound(vatBeforeIncl - withheldIncl);
+      const totalIncl = dartRound(baseIncl + vatAfterIncl);
+
+      $("#tvExclBase").textContent = fixed(baseExcl);
+      $("#tvExclVat").textContent = fixed(vatBefore);
+      $("#tvExclWithVat").textContent = fixed(withVatExcl);
+      $("#tvExclWithheld").textContent = fixed(withheldExcl);
+      $("#tvExclVatAfter").textContent = fixed(vatAfterExcl);
+      $("#tvExclTotal").textContent = fixed(totalExcl);
+      $("#tvInclBase").textContent = fixed(baseIncl);
+      $("#tvInclVat").textContent = fixed(vatBeforeIncl);
+      $("#tvInclWithVat").textContent = fixed(withVatIncl);
+      $("#tvInclWithheld").textContent = fixed(withheldIncl);
+      $("#tvInclVatAfter").textContent = fixed(vatAfterIncl);
+      $("#tvInclTotal").textContent = fixed(totalIncl);
+      $("#tvResults").hidden = false;
+
+      if (rateLabel === 10) {
+        showToast("KDV tutarınız tam tevkifat (10/10) oranına göre tevkif edilecektir.");
+      } else {
+        showToast("KDV tutarınız " + rateLabel + "/10 oranına göre tevkif edilecektir.");
+      }
+
+      if (!offerShown) {
+        offerShown = true;
+        showOfferDialog();
+      }
+    });
+  });
+
+  $("#tvReset").addEventListener("click", () => {
+    $("#tvAmount").value = "";
+    $("#tvRate").value = "";
+    $("#tvResults").hidden = true;
+    $("#tvAmount").focus();
+  });
+
+  function yuzdeCalculate() {
+    const firstInput = $("#yzFirst");
+    const secondInput = $("#yzSecond");
+    if (!firstInput.value || !secondInput.value) {
+      showToast("Lütfen bir değer girin");
+      return;
+    }
+    const x = numericValue(firstInput);
+    const y = numericValue(secondInput);
+    if (Number.isNaN(x) || Number.isNaN(y)) {
+      showToast("Lütfen bir değer girin");
+      return;
+    }
+
+    const percent = dartRound((y / x) * 100);
+    const valueOf = dartRound(x * (y / 100));
+    const increase = dartRound(x + valueOf);
+    const decrease = dartRound(x - valueOf);
+
+    $("#yzLabel1").textContent = secondInput.value + " sayısı " + firstInput.value + " sayısının % kaçıdır";
+    $("#yzValue1").textContent = "% " + fixed(percent);
+    $("#yzLabel2").textContent = firstInput.value + " sayısının %" + secondInput.value + " değeri";
+    $("#yzValue2").textContent = fixed(valueOf);
+    $("#yzLabel3").textContent = firstInput.value + " sayısı %" + secondInput.value + " artınca";
+    $("#yzValue3").textContent = fixed(increase);
+    $("#yzLabel4").textContent = firstInput.value + " sayısı %" + secondInput.value + " azalınca";
+    $("#yzValue4").textContent = fixed(decrease);
+    $("#yzResults").hidden = false;
+  }
+
+  $("#yzCalculate").addEventListener("click", yuzdeCalculate);
+  $("#yzReset").addEventListener("click", () => {
+    $("#yzFirst").value = "";
+    $("#yzSecond").value = "";
+    $("#yzResults").hidden = true;
+    $("#yzFirst").focus();
+  });
+  onEnter($("#yzFirst"), yuzdeCalculate);
+  onEnter($("#yzSecond"), yuzdeCalculate);
+
+  function yakitCalculate() {
+    const tankInput = $("#ykTank");
+    const kmInput = $("#ykKm");
+    const priceInput = $("#ykPrice");
+    if (!tankInput.value || !kmInput.value || !priceInput.value) {
+      showToast("Lütfen bir değer girin");
+      return;
+    }
+    const tank = numericValue(tankInput);
+    const km = numericValue(kmInput);
+    const price = numericValue(priceInput);
+    if (Number.isNaN(tank) || Number.isNaN(km) || Number.isNaN(price)) {
+      showToast("Lütfen bir değer girin");
+      return;
+    }
+    const liters = tank / km;
+    const cost = liters * price;
+    $("#ykLiters").textContent = fixed(liters) + " LT";
+    $("#ykCost").textContent = fixed(cost) + " ₺";
+    $("#ykResults").hidden = false;
+  }
+
+  $("#ykCalculate").addEventListener("click", yakitCalculate);
+  $("#ykReset").addEventListener("click", () => {
+    $("#ykTank").value = "";
+    $("#ykKm").value = "";
+    $("#ykPrice").value = "";
+    $("#ykResults").hidden = true;
+    $("#ykTank").focus();
+  });
+  onEnter($("#ykTank"), yakitCalculate);
+  onEnter($("#ykKm"), yakitCalculate);
+  onEnter($("#ykPrice"), yakitCalculate);
+
+  function akvaryumCalculate() {
+    const depthInput = $("#aqDepth");
+    const widthInput = $("#aqWidth");
+    const lengthInput = $("#aqLength");
+    const sandInput = $("#aqSand");
+    if (!depthInput.value || !widthInput.value || !lengthInput.value || !sandInput.value) {
+      showToast("Lütfen bir değer girin");
+      return;
+    }
+    const depth = numericValue(depthInput);
+    const width = numericValue(widthInput);
+    const length = numericValue(lengthInput);
+    const sandCm = numericValue(sandInput);
+    if (Number.isNaN(depth) || Number.isNaN(width) || Number.isNaN(length) || Number.isNaN(sandCm)) {
+      showToast("Lütfen bir değer girin");
+      return;
+    }
+
+    const volume = dartRound((length * width * depth) / 1000);
+    const planted = dartRound(volume * 0.50);
+    const unplanted = dartRound(volume * 0.25);
+    const filterMin = dartRound(volume * 2.50);
+    const filterMax = dartRound(volume * 4.75);
+    const heater = dartRound(volume * 0.6667);
+    const sandBase = dartRound(volume * 0.025);
+    const sandKg = dartRound(sandBase * sandCm);
+
+    $("#aqVolume").textContent = fixed(volume) + " Litre";
+    $("#aqLight").innerHTML = "<span class='sub-line'>Bitkili Akvaryum : " + fixed(planted) + " Watt</span><span class='sub-line'>Bitkisiz Akvaryum : " + fixed(unplanted) + " Watt</span>";
+    $("#aqFilter").innerHTML = "<span class='sub-line'>Minimum : " + fixed(filterMin) + "<span class='sub-small'> litre/saat</span></span><span class='sub-line'>Maximum : " + fixed(filterMax) + "<span class='sub-small'> litre/saat</span></span>";
+    $("#aqHeater").textContent = fixed(heater) + " Watt";
+    $("#aqSandResult").textContent = "İstediğiniz Kalınlık İçin Gerekli Kum : " + fixed(sandKg) + " Kg";
+    $("#aqReset").hidden = false;
+    $("#aqSpacer").hidden = true;
+  }
+
+  $("#aqCalculate").addEventListener("click", akvaryumCalculate);
+  onEnter($("#aqDepth"), akvaryumCalculate);
+  onEnter($("#aqWidth"), akvaryumCalculate);
+  onEnter($("#aqLength"), akvaryumCalculate);
+  onEnter($("#aqSand"), akvaryumCalculate);
+  $("#aqReset").addEventListener("click", () => {
+    $("#aqDepth").value = "";
+    $("#aqWidth").value = "";
+    $("#aqLength").value = "";
+    $("#aqVolume").textContent = "";
+    $("#aqLight").textContent = "";
+    $("#aqFilter").textContent = "";
+    $("#aqHeater").textContent = "";
+    $("#aqSandResult").textContent = "";
+    $("#aqReset").hidden = true;
+    $("#aqSpacer").hidden = false;
+    $("#aqDepth").focus();
+  });
+
+  function komisyonCalculateRate() {
+    const principalInput = $("#kmPrincipal1");
+    const discountInput = $("#kmDiscount");
+    if (!principalInput.value || !discountInput.value) {
+      showToast("Lütfen bir değer girin");
+      return;
+    }
+    const principal = numericValue(principalInput);
+    const discount = numericValue(discountInput);
+    if (Number.isNaN(principal) || Number.isNaN(discount)) {
+      showToast("Lütfen bir değer girin");
+      return;
+    }
+    const rate = dartRound((discount / principal) * 100);
+    const net = dartRound(principal * ((100 - rate) / 100));
+    $("#kmRate").textContent = "% " + fixed(rate);
+    $("#kmNet1").textContent = fixed(net) + " ₺";
+    $("#kmPanel1").hidden = false;
+    $("#kmReset1").hidden = false;
+  }
+
+  function komisyonCalculateAmount() {
+    const principalInput = $("#kmPrincipal2");
+    const percentInput = $("#kmPercent");
+    if (!principalInput.value || !percentInput.value) {
+      showToast("Lütfen bir değer girin");
+      return;
+    }
+    const principal = numericValue(principalInput);
+    const percent = numericValue(percentInput);
+    if (Number.isNaN(principal) || Number.isNaN(percent)) {
+      showToast("Lütfen bir değer girin");
+      return;
+    }
+    const amount = dartRound(principal * (percent / 100));
+    const net = dartRound(principal - amount);
+    $("#kmAmount").textContent = fixed(amount) + " ₺";
+    $("#kmNet2").textContent = fixed(net) + " ₺";
+    $("#kmPanel2").hidden = false;
+    $("#kmReset2").hidden = false;
+  }
+
+  $("#kmCalculate1").addEventListener("click", komisyonCalculateRate);
+  $("#kmCalculate2").addEventListener("click", komisyonCalculateAmount);
+  onEnter($("#kmPrincipal1"), komisyonCalculateRate);
+  onEnter($("#kmDiscount"), komisyonCalculateRate);
+  onEnter($("#kmPrincipal2"), komisyonCalculateAmount);
+  onEnter($("#kmPercent"), komisyonCalculateAmount);
+  $("#kmReset1").addEventListener("click", () => {
+    $("#kmPrincipal1").value = "";
+    $("#kmDiscount").value = "";
+    $("#kmPanel1").hidden = true;
+    $("#kmReset1").hidden = true;
+    $("#kmPrincipal1").focus();
+  });
+  $("#kmReset2").addEventListener("click", () => {
+    $("#kmPrincipal2").value = "";
+    $("#kmPercent").value = "";
+    $("#kmPanel2").hidden = true;
+    $("#kmReset2").hidden = true;
+    $("#kmPrincipal2").focus();
+  });
+
+  function bmiComment(bmi) {
+    if (bmi === 0) return "";
+    if (bmi < 18.5) return "Zayıfsınız. Biraz kilo almanızda fayda var, ama tabii ki de sağlıklı bir şekilde.";
+    if (bmi < 24.99) return "Kilonuz normal. Fakat yine de yediklerinize dikkat etmeyi ihmal etmeyin lütfen.";
+    if (bmi < 29.99) return "Fazla kilolarınızdan kurtulmanız gerekli. Aksi halde kilolarınız başınıza dert açabilir.";
+    if (bmi < 34.99) return "Birinci derecede obezsiniz. Yediğinize dikkat edip bir diyetisyene başvurmanız gerekli.";
+    if (bmi < 44.99) return "İkinci derecede obezsiniz. Kalp ve damar hastalıkları riskiniz var. Bir diyetisyene başvurmanız gerekli.";
+    return "Üçüncü derecede obezsiniz. Bu da morbid obezite demek. Acil olarak bir diyetisyene başvurmanız gerekli.";
+  }
+
+  function vucutCalculate() {
+    const weightInput = $("#vkWeight");
+    const heightInput = $("#vkHeight");
+    if (!weightInput.value || !heightInput.value) {
+      showToast("Lütfen bir değer girin");
+      return;
+    }
+    const weight = numericValue(weightInput);
+    const height = numericValue(heightInput);
+    if (Number.isNaN(weight) || Number.isNaN(height)) {
+      showToast("Lütfen bir değer girin");
+      return;
+    }
+    const bmi = dartRound(weight / ((height / 100) * (height / 100)));
+    $("#vkTitle").textContent = "VÜCUT KİTLE ENDEKSİNİZ : " + fixed(bmi);
+    $("#vkComment").textContent = bmiComment(bmi);
+    $("#vkResults").hidden = false;
+
+    if (!bmiWarningShown) {
+      bmiWarningShown = true;
+      openDialog("Uyarı", "<p>Edindiğiniz sonuçlar formulize olarak doğru olsa bile sağlığınız açısından en güvenilir sonuçlar için diyetisyenlerden yardım almanızı öneririz.</p>");
+    }
+  }
+
+  $("#vkCalculate").addEventListener("click", vucutCalculate);
+  onEnter($("#vkWeight"), vucutCalculate);
+  onEnter($("#vkHeight"), vucutCalculate);
+  $("#vkReset").addEventListener("click", () => {
+    $("#vkWeight").value = "";
+    $("#vkHeight").value = "";
+    $("#vkResults").hidden = true;
+    $("#vkWeight").focus();
+  });
+
+  function beygirKwCalculate() {
+    const input = $("#bgKw");
+    if (!input.value) {
+      showToast("Lütfen bir değer girin");
+      return;
+    }
+    const kw = numericValue(input);
+    if (Number.isNaN(kw)) {
+      showToast("Lütfen bir değer girin");
+      return;
+    }
+    const hp = kw * 1.3410220896;
+    const mhp = kw * 1.3596216173;
+    const ehp = kw * 1.3404825737;
+    const bhp = kw * 0.101941995;
+    $$("[data-kw-source]").forEach((span) => { span.textContent = kw + " kW"; });
+    $("#bgHp").textContent = fixed(hp, 10) + " hp";
+    $("#bgBhp").textContent = fixed(bhp, 10) + " bhp";
+    $("#bgEhp").textContent = fixed(ehp, 10) + " ehp";
+    $("#bgMhp").textContent = fixed(mhp, 10) + " mhp";
+    $("#bgKwResults").hidden = false;
+    $("#bgKwReset").hidden = false;
+    input.value = "";
+    input.focus();
+  }
+
+  function beygirHpCalculate() {
+    const input = $("#bgHpInput");
+    if (!input.value) {
+      showToast("Lütfen bir değer girin");
+      return;
+    }
+    const hp = numericValue(input);
+    if (Number.isNaN(hp)) {
+      showToast("Lütfen bir değer girin");
+      return;
+    }
+    const kw = hp * 0.7456998716;
+    const mhp = hp * 0.73549875;
+    const ehp = hp * 0.746;
+    const bhp = hp * 9.8095;
+    $$("[data-hp-source]").forEach((span) => {
+      const kind = span.dataset.hpKind;
+      span.textContent = kind ? hp + " " + kind : hp + " hp";
+    });
+    $("#bgHpKw").textContent = fixed(kw, 10) + " kW";
+    $("#bgHpBhpKw").textContent = fixed(bhp, 10) + " kW";
+    $("#bgHpEhpKw").textContent = fixed(ehp, 10) + " kW";
+    $("#bgHpMhpKw").textContent = fixed(mhp, 10) + " kW";
+    $("#bgHpResults").hidden = false;
+    $("#bgHpReset").hidden = false;
+    input.value = "";
+    input.focus();
+  }
+
+  $("#bgKwCalculate").addEventListener("click", beygirKwCalculate);
+  $("#bgHpCalculate").addEventListener("click", beygirHpCalculate);
+  onEnter($("#bgKw"), beygirKwCalculate);
+  onEnter($("#bgHpInput"), beygirHpCalculate);
+  $("#bgKwReset").addEventListener("click", () => {
+    $("#bgKwResults").hidden = true;
+    $("#bgKwReset").hidden = true;
+    $("#bgKw").focus();
+  });
+  $("#bgHpReset").addEventListener("click", () => {
+    $("#bgHpResults").hidden = true;
+    $("#bgHpReset").hidden = true;
+    $("#bgHpInput").focus();
+  });
+
+  const tabs = $("#kdvTabs");
+  const tabButtons = $$(".tab", tabs);
+  const tabPanels = $$(".tab-panel", pages.get("kdv"));
+  tabButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const target = button.dataset.tab;
+      if (tabs.dataset.active === target) return;
+      tabs.dataset.active = target;
+      tabButtons.forEach((tab) => {
+        const active = tab.dataset.tab === target;
+        tab.classList.toggle("active", active);
+        tab.setAttribute("aria-selected", active ? "true" : "false");
+      });
+      tabPanels.forEach((panel) => {
+        panel.classList.toggle("active", panel.dataset.panel === target);
+      });
+    });
+  });
+
+  let currentKey = "home";
+  let animating = false;
+  let pendingDirection = null;
+  let cameFromHome = false;
+
+  function keyFromHash() {
+    const raw = location.hash.replace(/^#\/?/, "");
+    return pages.has(raw) ? raw : "home";
+  }
+
+  function updateTitle(key) {
+    document.title = key === "home" ? "HesapMatik" : titles[key] + " · HesapMatik";
+  }
+
+  function activate(key) {
+    pages.forEach((page, pageKey) => {
+      page.classList.remove("active", "behind", "sliding");
+      page.style.visibility = "";
+      page.style.transform = "";
+      page.style.zIndex = "";
+      if (pageKey === key) page.classList.add("active");
+    });
+    currentKey = key;
+    updateTitle(key);
+  }
+
+  function animationComplete(targetPage, oldPage, isBack, targetKey) {
+    if (isBack) {
+      oldPage.classList.remove("active", "behind", "sliding");
+      oldPage.style.visibility = "";
+      oldPage.style.transform = "";
+      oldPage.style.zIndex = "";
+      targetPage.classList.remove("behind", "sliding");
+      targetPage.style.visibility = "";
+      targetPage.style.transform = "";
+      targetPage.style.zIndex = "";
+      targetPage.classList.add("active");
+    } else {
+      oldPage.classList.remove("active", "behind", "sliding");
+      oldPage.style.visibility = "";
+      oldPage.style.transform = "";
+      oldPage.style.zIndex = "";
+      targetPage.classList.remove("sliding");
+      targetPage.style.visibility = "";
+      targetPage.style.transform = "";
+      targetPage.style.zIndex = "";
+      targetPage.classList.add("active");
+    }
+    currentKey = targetKey;
+    updateTitle(targetKey);
+    animating = false;
+  }
+
+  function animateTo(targetKey, direction) {
+    if (animating || targetKey === currentKey) return;
+    const targetPage = pages.get(targetKey);
+    const oldPage = pages.get(currentKey);
+    if (!targetPage || !oldPage) return;
+    if (!(targetKey === "home" || currentKey === "home")) {
+      activate(targetKey);
+      return;
+    }
+
+    animating = true;
+    const isBack = targetKey === "home";
+
+    if (!isBack) {
+      targetPage.style.visibility = "visible";
+      targetPage.style.zIndex = "3";
+      targetPage.style.transform = "translateX(100%)";
+      oldPage.classList.add("behind");
+      oldPage.style.zIndex = "2";
+      void targetPage.offsetWidth;
+      targetPage.classList.add("sliding");
+      oldPage.classList.add("sliding");
+      targetPage.style.transform = "translateX(0)";
+      oldPage.style.transform = "translateX(-30%)";
+      setTimeout(() => animationComplete(targetPage, oldPage, false, targetKey), 440);
+    } else {
+      targetPage.style.visibility = "visible";
+      targetPage.style.zIndex = "2";
+      targetPage.style.transform = "translateX(-30%)";
+      oldPage.style.zIndex = "3";
+      oldPage.style.transform = "translateX(0)";
+      void targetPage.offsetWidth;
+      oldPage.classList.add("sliding");
+      targetPage.classList.add("sliding");
+      oldPage.style.transform = "translateX(100%)";
+      targetPage.style.transform = "translateX(0)";
+      setTimeout(() => animationComplete(targetPage, oldPage, true, targetKey), 440);
+    }
+  }
+
+  function navigate(key) {
+    if (animating || key === currentKey) return;
+    if (key === "home") {
+      pendingDirection = "pop";
+      if (cameFromHome) {
+        history.back();
+      } else {
+        location.hash = "";
+      }
+      return;
+    }
+    pendingDirection = "push";
+    cameFromHome = currentKey === "home";
+    location.hash = "#/" + key;
+  }
+
+  function goBack() {
+    if (animating || currentKey === "home") return;
+    pendingDirection = "pop";
+    if (cameFromHome) {
+      history.back();
+    } else {
+      cameFromHome = false;
+      location.hash = "";
+    }
+  }
+
+  document.addEventListener("click", (event) => {
+    const navButton = event.target.closest("[data-nav]");
+    if (navButton) {
+      navigate(navButton.dataset.nav);
+      return;
+    }
+    const backButton = event.target.closest("[data-back]");
+    if (backButton) {
+      goBack();
+    }
+  });
+
+  window.addEventListener("hashchange", () => {
+    const target = keyFromHash();
+    if (target === currentKey) return;
+    const direction = pendingDirection || (target === "home" ? "pop" : "push");
+    pendingDirection = null;
+    if (target === "home") cameFromHome = false;
+    animateTo(target, direction);
+  });
+
+  const initialKey = keyFromHash();
+  if (initialKey !== "home") {
+    activate(initialKey);
+  } else {
+    currentKey = "home";
+    updateTitle("home");
+  }
+
+  window.addEventListener("resize", () => {
+    if (animating) return;
+  });
+</script>
+</body>
+</html>
