@@ -2648,9 +2648,7 @@
 </script>
 <script>
   if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js').catch(() => {});
-    });
+    navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(() => {});
   }
   if (navigator.storage && navigator.storage.persist) {
     navigator.storage.persist().catch(() => {});

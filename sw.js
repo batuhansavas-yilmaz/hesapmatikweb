@@ -1,4 +1,4 @@
-const CACHE_NAME = 'hesapmatik-v2';
+const CACHE_NAME = 'hesapmatik-v3';
 const APP_SHELL = [
   './',
   './index.html',
@@ -19,21 +19,25 @@ const APP_SHELL = [
 ];
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => cache.addAll(APP_SHELL))
-      .then(() => self.skipWaiting())
-  );
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    await Promise.all(APP_SHELL.map((url) =>
+      cache.add(url).catch(() => {})
+    ));
+    await self.skipWaiting();
+  })());
 });
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys()
-      .then((keys) => Promise.all(
-        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
-      ))
-      .then(() => self.clients.claim())
-  );
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key)));
+    const cache = await caches.open(CACHE_NAME);
+    await Promise.all(APP_SHELL.map((url) =>
+      cache.match(url).then((hit) => hit || cache.add(url).catch(() => {}))
+    ));
+    await self.clients.claim();
+  })());
 });
 
 self.addEventListener('fetch', (event) => {
@@ -43,15 +47,23 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== location.origin) return;
 
   if (request.mode === 'navigate') {
-    event.respondWith(
-      fetch(request)
-        .then((response) => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put('./index.html', copy));
-          return response;
-        })
-        .catch(() => caches.match('./index.html'))
-    );
+    event.respondWith((async () => {
+      const cached = await caches.match('./index.html');
+      if (cached) return cached;
+      try {
+        const response = await fetch(request);
+        if (response && response.ok) {
+          const cache = await caches.open(CACHE_NAME);
+          cache.put('./index.html', response.clone());
+        }
+        return response;
+      } catch (e) {
+        return (await caches.match('./')) || new Response('Offline', {
+          status: 503,
+          headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+        });
+      }
+    })());
     return;
   }
 
