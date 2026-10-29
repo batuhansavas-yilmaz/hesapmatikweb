@@ -971,6 +971,9 @@
     left: 50%;
     bottom: 26px;
     z-index: 200;
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
     max-width: calc(100vw - 48px);
     padding: 12px 20px;
     border-radius: 16px;
@@ -978,7 +981,7 @@
     color: #fff;
     font-size: 14px;
     line-height: 1.3;
-    text-align: center;
+    text-align: left;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1179,8 +1182,8 @@
     --hover: rgba(31, 58, 95, .08);
     --hover-soft: rgba(31, 58, 95, .06);
     --ripple: rgba(31, 58, 95, .18);
-    --toast-bg: #1f3a5f;
-    --toast-fg: #ffffff;
+    --toast-bg: #0c1120;
+    --toast-fg: #eef1f8;
     --gold: #8a5a00;
     --shadow-card:
       0 10px 26px rgba(30, 64, 92, .10),
@@ -1223,8 +1226,8 @@
       --hover: rgba(255, 255, 255, .08);
       --hover-soft: rgba(255, 255, 255, .08);
       --ripple: rgba(255, 255, 255, .20);
-      --toast-bg: #282344;
-      --toast-fg: #f3f0ff;
+      --toast-bg: #eaf2fa;
+      --toast-fg: #1f3a5f;
       --gold: #ffc53d;
       --shadow-card:
         0 14px 34px rgba(2, 5, 18, .38),
@@ -1368,6 +1371,21 @@
     box-shadow: var(--shadow-card);
   }
 
+  .toast img {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex: 0 0 auto;
+  }
+
+  .toast span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
   @media (min-width: 768px) {
     .toast {
       font-size: 15px;
@@ -1486,7 +1504,7 @@
               <div class="kdv-row"><span>Tevkifat Sonrası Ödenecek Tutar</span><span class="kdv-value" id="tvInclTotal">0.00</span></div>
             </div>
             <div class="reset-wrap">
-              <button type="button" class="btn reset-button" id="tvReset" data-ripple aria-label="Sıfırla">
+              <button type="button" class="btn reset-button" id="tvReset" data-ripple aria-label="Sıfırla" hidden>
                 <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 5V1L7 6l5 5V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7Z"/></svg>
               </button>
             </div>
@@ -1841,7 +1859,10 @@
   </div>
 </div>
 
-<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="toast" id="toast" role="status" aria-live="polite">
+  <img src="icon-192-v2.png" alt="">
+  <span id="toastText"></span>
+</div>
 
 <script>
   const $ = (selector, root = document) => root.querySelector(selector);
@@ -1909,7 +1930,7 @@
 
   function showToast(message) {
     const toast = $("#toast");
-    toast.textContent = message;
+    $("#toastText").textContent = message;
     toast.classList.add("show");
     clearTimeout(showToast.timer);
     showToast.timer = setTimeout(() => toast.classList.remove("show"), 2000);
@@ -2123,6 +2144,7 @@
       $("#tvInclVatAfter").textContent = fixed(vatAfterIncl);
       $("#tvInclTotal").textContent = fixed(totalIncl);
       $("#tvResults").hidden = false;
+      $("#tvReset").hidden = false;
 
       if (rateLabel === 10) {
         showToast("KDV tutarınız tam tevkifat (10/10) oranına göre tevkif edilecektir.");
@@ -2144,6 +2166,7 @@
      "#tvInclBase", "#tvInclVat", "#tvInclWithVat", "#tvInclWithheld", "#tvInclVatAfter", "#tvInclTotal"].forEach((id) => {
       $(id).textContent = "0.00";
     });
+    $("#tvReset").hidden = true;
     $("#tvAmount").focus();
   });
 
