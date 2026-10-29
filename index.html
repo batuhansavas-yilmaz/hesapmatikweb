@@ -187,7 +187,7 @@
     margin: 0;
     padding: 0 8px;
     font-size: 20px;
-    font-weight: 500;
+    font-weight: 700;
     letter-spacing: .15px;
     line-height: 1.2;
     text-align: center;
@@ -196,7 +196,8 @@
     text-overflow: ellipsis;
   }
 
-  .appbar.detail h1 {
+  .appbar.detail h1,
+  .appbar-row.detail h1 {
     padding-left: 4px;
     text-align: left;
   }
@@ -1148,36 +1149,38 @@
 
   :root {
     color-scheme: light;
-    --primary: #5a4ad8;
-    --primary-2: #6a59e8;
-    --primary-soft: #ece9fc;
+    --primary: #1f3a5f;
+    --primary-2: #1f3a5f;
+    --primary-soft: rgba(31, 58, 95, .08);
     --ice: #2f79a4;
     --scaffold: #eaf2fa;
     --appbar: #ffffff;
-    --appbar-fg: #234d6c;
-    --text: #234d6c;
-    --muted: #4c7493;
+    --appbar-fg: #1f3a5f;
+    --text: #1f3a5f;
+    --muted: #1f3a5f;
     --card: #ffffff;
-    --card-fg: #234d6c;
+    --card-fg: #1f3a5f;
     --surface: #ffffff;
-    --surface-2: #f3f8fd;
-    --button: #5a4ad8;
+    --surface-2: #f8fbfe;
+    --button: #1f3a5f;
     --button-fg: #ffffff;
     --input: #f8fbfe;
     --input-border: #c3d8e8;
-    --focus: #5a4ad8;
-    --hint: #4f728d;
+    --focus: #1f3a5f;
+    --hint: #1f3a5f;
     --divider: #d7e5f1;
-    --border: #d7e5f1;
+    --border: #c3d8e8;
     --border-2: #c3d8e8;
-    --result-title: #5a4ad8;
+    --result-title: #1f3a5f;
+    --result-title-fg: #ffffff;
+    --tab-indicator: #1f3a5f;
     --dialog: #ffffff;
-    --dialog-action: #4c7493;
-    --hover: rgba(90, 74, 216, .08);
-    --hover-soft: rgba(18, 34, 47, .06);
-    --ripple: rgba(90, 74, 216, .18);
-    --toast-bg: #ffffff;
-    --toast-fg: #234d6c;
+    --dialog-action: #1f3a5f;
+    --hover: rgba(31, 58, 95, .08);
+    --hover-soft: rgba(31, 58, 95, .06);
+    --ripple: rgba(31, 58, 95, .18);
+    --toast-bg: #1f3a5f;
+    --toast-fg: #ffffff;
     --gold: #8a5a00;
     --shadow-card:
       0 10px 26px rgba(30, 64, 92, .10),
@@ -1191,7 +1194,7 @@
     :root {
       color-scheme: dark;
       --primary: #6f63f6;
-      --primary-2: #8b80ff;
+      --primary-2: #6f63f6;
       --primary-soft: rgba(111, 99, 246, .16);
       --ice: #7fe4d8;
       --scaffold: #0c1120;
@@ -1201,25 +1204,27 @@
       --muted: #a2abc8;
       --card: #1d253d;
       --card-fg: #eef1f8;
-      --surface: #161d31;
+      --surface: #1d253d;
       --surface-2: #1d253d;
-      --button: #6a59e8;
-      --button-fg: #ffffff;
+      --button: #b9b0ff;
+      --button-fg: #17122b;
       --input: #1d253d;
       --input-border: #323d63;
-      --focus: #8b80ff;
+      --focus: #6f63f6;
       --hint: #6a7495;
       --divider: #263051;
-      --border: #263051;
+      --border: #323d63;
       --border-2: #323d63;
-      --result-title: #6f63f6;
-      --dialog: #161d31;
+      --result-title: #b9b0ff;
+      --result-title-fg: #17122b;
+      --tab-indicator: #b9b0ff;
+      --dialog: #1d253d;
       --dialog-action: #a2abc8;
       --hover: rgba(255, 255, 255, .08);
       --hover-soft: rgba(255, 255, 255, .08);
       --ripple: rgba(255, 255, 255, .20);
-      --toast-bg: #1d253d;
-      --toast-fg: #eef1f8;
+      --toast-bg: #282344;
+      --toast-fg: #f3f0ff;
       --gold: #ffc53d;
       --shadow-card:
         0 14px 34px rgba(2, 5, 18, .38),
@@ -1229,7 +1234,6 @@
         0 2px 8px rgba(2, 5, 18, .18);
     }
   }
-
   .page {
     background-color: var(--scaffold);
     background-image:
@@ -1273,7 +1277,7 @@
   }
 
   .tab-indicator {
-    background: var(--primary);
+    background: var(--tab-indicator);
   }
 
   .card-icon {
@@ -1314,7 +1318,7 @@
   .result-title,
   .unit-panel {
     background: var(--result-title);
-    color: #fff;
+    color: var(--result-title-fg);
   }
 
   .panel-divider,
@@ -1362,6 +1366,15 @@
     color: var(--toast-fg);
     border: 1px solid var(--border);
     box-shadow: var(--shadow-card);
+  }
+
+  @media (min-width: 768px) {
+    .toast {
+      font-size: 15px;
+      padding: 14px 24px;
+      max-width: min(680px, calc(100vw - 64px));
+      border-radius: 18px;
+    }
   }
 </style>
 </head>
@@ -1443,7 +1456,7 @@
             <button type="button" class="btn rate-button" data-rate="9" data-factor="0.90" data-ripple>9/10</button>
             <button type="button" class="btn rate-button full" data-rate="10" data-factor="1" data-ripple>Tam Tevkifat (10/10)</button>
           </div>
-          <div class="tevkifat-results" id="tvResults" hidden>
+          <div class="tevkifat-results" id="tvResults">
             <div class="kdv-section">
               <div class="result-title compact">KDV Hariç Tutardan Tevkifat Hesaplama</div>
               <div class="kdv-row"><span>Matrah</span><span class="kdv-value" id="tvExclBase">0.00</span></div>
@@ -2127,7 +2140,10 @@
   $("#tvReset").addEventListener("click", () => {
     $("#tvAmount").value = "";
     $("#tvRate").value = "";
-    $("#tvResults").hidden = true;
+    ["#tvExclBase", "#tvExclVat", "#tvExclWithVat", "#tvExclWithheld", "#tvExclVatAfter", "#tvExclTotal",
+     "#tvInclBase", "#tvInclVat", "#tvInclWithVat", "#tvInclWithheld", "#tvInclVatAfter", "#tvInclTotal"].forEach((id) => {
+      $(id).textContent = "0.00";
+    });
     $("#tvAmount").focus();
   });
 
