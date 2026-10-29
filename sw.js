@@ -1,4 +1,4 @@
-const CACHE_NAME = 'hesapmatik-v3';
+﻿const CACHE_NAME = 'hesapmatik-v4';
 const APP_SHELL = [
   './',
   './index.html',
