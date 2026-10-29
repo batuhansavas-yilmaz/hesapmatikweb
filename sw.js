@@ -1,11 +1,12 @@
-﻿const CACHE_NAME = 'hesapmatik-v4';
+﻿const CACHE_NAME = 'hesapmatik-v5';
 const APP_SHELL = [
   './',
   './index.html',
   './manifest.json',
-  './favicon.png',
-  './icon-180.png',
-  './icon-192.png',
+  './favicon-v2.png',
+  './icon-180-v2.png',
+  './icon-192-v2.png',
+  './icon-512-v2.png',
   './assets/aquarium.png',
   './assets/car.png',
   './assets/commission.png',
