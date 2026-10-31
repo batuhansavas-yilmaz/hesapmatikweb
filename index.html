@@ -2027,7 +2027,12 @@
     ripple.style.left = (event.clientX - rect.left - size / 2) + "px";
     ripple.style.top = (event.clientY - rect.top - size / 2) + "px";
     host.appendChild(ripple);
-    ripple.addEventListener("animationend", () => ripple.remove());
+    const cleanup = () => ripple.remove();
+    ripple.addEventListener("animationend", cleanup, { once: true });
+    ["pointercancel", "pointerleave"].forEach((type) => {
+      host.addEventListener(type, cleanup, { once: true });
+    });
+    setTimeout(cleanup, 900);
   }, { passive: true });
 
   function filterNumeric(input, maxDecimals, digitsOnly) {
@@ -2589,8 +2594,6 @@
 
   let currentKey = "home";
   let animating = false;
-  let pendingDirection = null;
-  let cameFromHome = false;
 
   function keyFromHash() {
     const raw = location.hash.replace(/^#\/?/, "");
@@ -2681,30 +2684,13 @@
   }
 
   function navigate(key) {
-    if (animating || key === currentKey) return;
-    if (key === "home") {
-      pendingDirection = "pop";
-      if (cameFromHome) {
-        history.back();
-      } else {
-        location.hash = "";
-      }
-      return;
-    }
-    pendingDirection = "push";
-    cameFromHome = currentKey === "home";
-    location.hash = "#/" + key;
+    if (animating || key === currentKey || !pages.has(key)) return;
+    animateTo(key, key === "home" ? "pop" : "push");
   }
 
   function goBack() {
     if (animating || currentKey === "home") return;
-    pendingDirection = "pop";
-    if (cameFromHome) {
-      history.back();
-    } else {
-      cameFromHome = false;
-      location.hash = "";
-    }
+    animateTo("home", "pop");
   }
 
   document.addEventListener("click", (event) => {
@@ -2719,21 +2705,12 @@
     }
   });
 
-  window.addEventListener("hashchange", () => {
-    const target = keyFromHash();
-    if (target === currentKey) return;
-    const direction = pendingDirection || (target === "home" ? "pop" : "push");
-    pendingDirection = null;
-    if (target === "home") cameFromHome = false;
-    animateTo(target, direction);
-  });
-
   const initialKey = keyFromHash();
-  if (initialKey !== "home") {
-    activate(initialKey);
-  } else {
-    currentKey = "home";
-    updateTitle("home");
+  activate(initialKey);
+  if (location.hash) {
+    try {
+      history.replaceState(null, "", location.pathname + location.search);
+    } catch (error) {}
   }
 
   window.addEventListener("resize", () => {
@@ -2792,7 +2769,15 @@
 </script>
 <script>
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(() => {});
+    let reloading = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (reloading) return;
+      reloading = true;
+      location.reload();
+    });
+    navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' })
+      .then((registration) => registration.update())
+      .catch(() => {});
   }
   if (navigator.storage && navigator.storage.persist) {
     navigator.storage.persist().catch(() => {});

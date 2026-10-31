@@ -1,4 +1,4 @@
-﻿const CACHE_NAME = 'hesapmatik-v8';
+﻿const CACHE_NAME = 'hesapmatik-v9';
 const APP_SHELL = [
   './',
   './index.html',
@@ -32,7 +32,9 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil((async () => {
     const keys = await caches.keys();
-    await Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key)));
+    await Promise.all(keys
+      .filter((key) => key.startsWith('hesapmatik-') && key !== CACHE_NAME)
+      .map((key) => caches.delete(key)));
     const cache = await caches.open(CACHE_NAME);
     await Promise.all(APP_SHELL.map((url) =>
       cache.match(url).then((hit) => hit || cache.add(url).catch(() => {}))
